@@ -55,3 +55,12 @@ Add dev script to watch for file changes in dist:
 ```json
     "dev": "nodemon dist/index.js",
 ```
+
+
+### Mikro ORM & Postgresql
+
+Install Mikro ORM and Postgresql driver PG with:
+
+```shell
+yarn add @mikro-orm/cli @mikro-orm/core @mikro-orm/migrations @mikro-orm/postgresql pg
+```
