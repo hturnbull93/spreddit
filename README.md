@@ -179,3 +179,13 @@ The cli tool needs `ts-node` to work, installed with:
 ```shell
 yarn add -D ts-node
 ```
+
+The [migration](https://mikro-orm.io/docs/migrations/#using-via-cli) itself is run with:
+
+```shell
+npx mikro-orm migration:create
+```
+
+This creates a class in the migrations folder, timestamped, such as `Migration20210424130609.ts`, which contains a method `up` that will run SQL code to perform the migration.
+
+However, this gives the createdAt and updatedAt colums the type of jsonb, when they should be dates, so specify the type in the Post entity as date, and delete the file and rerun the migration.
