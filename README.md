@@ -31,3 +31,9 @@ Generate tsconfig.json, choosing nodejs:
 ```shell
 npx tsconfig.json
 ```
+
+Add script to watch in package.json:
+
+```json
+  "watch": "tsc -w",
+```
