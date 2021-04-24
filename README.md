@@ -79,3 +79,24 @@ And add environmental variables in a gitignored `.env` file, for example:
 DB_USER=myPostgresqlUsername
 DB_PASS=myPostgresqlPassword
 ```
+
+Initialise orm in `./src/index.ts`:
+
+```ts
+import { MikroORM } from "@mikro-orm/core";
+import { DB_PASS, DB_USER, __prod__ } from "./constants";
+
+const main = async () => {
+  const orm = await MikroORM.init({
+    dbName: 'lireddit',
+    user: DB_USER,
+    password: DB_PASS,
+    type: 'postgresql',
+    debug: !__prod__,
+  });
+};
+
+main();
+```
+
+The `main` function is used to be able to wrap the await. Imported from `constants.ts` are the environmental variables for the database, and one that indiciates if `NODE_ENV` is `production`. 
