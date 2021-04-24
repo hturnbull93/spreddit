@@ -337,3 +337,21 @@ export class Post {
   updatedAt = new Date();
 }
 ```
+
+Then adding a resolver to get posts, in `src/resolvers/post.ts`:
+
+```ts
+import { Post } from "src/entities/Post";
+import { ApolloContext } from "src/types";
+import { Ctx, Query, Resolver } from "type-graphql";
+
+@Resolver()
+export class PostResolver {
+  @Query(() => [Post])
+  posts(@Ctx() { em }: ApolloContext): Promise<Post[]> {
+    return em.find(Post, {});
+  }
+};
+```
+
+Here we are able to add the type for the `Query` decorator as an array containing `Post`, which works because we decorated `Post` as an `ObjectType`. The first parameter for the query is the context object, which is decorated with `Ctx` and typed with `ApolloContext` from `src/types.ts`:
