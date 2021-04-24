@@ -66,3 +66,16 @@ yarn add @mikro-orm/cli @mikro-orm/core @mikro-orm/migrations @mikro-orm/postgre
 ```
 
 Install Postgresql following the steps in [this article](https://harshityadav95.medium.com/postgresql-in-windows-subsystem-for-linux-wsl-6dc751ac1ff3).
+
+As I want to keep credentials safe, and easily customisable, add detenv with:
+
+```shell
+yarn add dotenv
+```
+
+And add environmental variables in a gitignored `.env` file, for example:
+
+```
+DB_USER=myPostgresqlUsername
+DB_PASS=myPostgresqlPassword
+```
