@@ -743,3 +743,16 @@ main();
 ```
 
 A `RedisStore` is created by passing `session` to `connectRedis`, and a `redisClient` is created with `redis.createClient()`. The express `app` uses session, passing a name of "qid", an instance of `RedisStore` passing the client and `disableTouch: true` to reduce the amount of traffic to redis. The cookie is given a max age of 10 years (for now), `httpOnly: true`, and `secure` (https) only when in the production environment. The secret is `SESSION_SECRET` taken from the `.env` file, and resave is false;
+
+The context function gets the req and res from express, and passes those through, which are added to the ApolloContext type in `src/types.ts`:
+
+```ts
+import { EntityManager, IDatabaseDriver, Connection } from "@mikro-orm/core";
+import { Request, Response } from "express";
+
+export type ApolloContext = {
+  em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>;
+  req: Request;
+  res: Response;
+};
+```
