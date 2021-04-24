@@ -520,23 +520,50 @@ To register a user, in `src/resolvers/user.ts`:
 import argon2 from "argon2";
 import { User } from "../entities/User";
 import { ApolloContext } from "../types";
-import { Arg, Ctx, Field, InputType, Mutation, Resolver } from "type-graphql";
+import {
+  Arg,
+  Ctx,
+  Field,
+  InputType,
+  Mutation,
+  ObjectType,
+  Resolver,
+} from "type-graphql";
 
 @InputType()
 class UsernamePasswordInput {
   @Field()
-  username: string
+  username: string;
+
   @Field()
-  password: string
+  password: string;
+}
+
+@ObjectType()
+class FieldError {
+  @Field()
+  field: string;
+
+  @Field()
+  message: string;
+}
+
+@ObjectType()
+class UserResponse {
+  @Field(() => [FieldError], { nullable: true })
+  errors?: FieldError[];
+
+  @Field(() => User, { nullable: true })
+  user?: User;
 }
 
 @Resolver()
 export class UserResolver {
-  @Mutation(() => User, { nullable: true })
+  @Mutation(() => UserResponse)
   async register(
     @Arg("options") { username, password }: UsernamePasswordInput,
     @Ctx() { em }: ApolloContext,
-  ): Promise<User | null> {
+  ): Promise<UserResponse> {
     const passwordDigest = await argon2.hash(password);
     let user;
     try {
@@ -544,15 +571,23 @@ export class UserResolver {
         username,
         password: passwordDigest,
       });
-      await em.persistAndFlush(user)
+      await em.persistAndFlush(user);
     } catch (error) {
-      return null;
+      return {
+        errors: [
+          { field: "username", message: "that username is already in use" },
+        ],
+      };
     }
-    return user;
+    return { user };
   }
-};
+}
 ```
 
-The `UsernamePasswordInput` class is decorated with `InputType`, and `Field` for each property. This is used in the `register` method as a type for the `options` arg (which is destructured immediately). `argon2` is installed with `yarn add argon2` and is used to hash the password into a passwordDigest, which is persisted as a new user in the database. If the user cannot be created, because the username already exists, it will return null, otherwise it will return the user.
+The `UsernamePasswordInput` class is decorated with `InputType`, and `Field` for each property. The `UserResponse` `ObjectType` has a nullable errors field, which is an array of `FieldError`s. `FieldError` is another `ObjectType` with a `field` and `message` fields. `UserResponse` also has a nullable `user` field. 
+
+In the `register` method the `options` arg (which is destructured immediately) is typed with `UsernamePasswordInput`, and it returns a `Promise` that resolves a `UserResponse`. 
+
+`argon2` is installed with `yarn add argon2` and is used to hash the password into a passwordDigest, which is persisted as a new user in the database. If the user cannot be created, because the username already exists, it will return a `UserResponse` object with a relevant error, otherwise it will return a a `UserResponse` object with the user.
 
 The `UserResolver` is then added to the resolvers array of the Apollo Server.
