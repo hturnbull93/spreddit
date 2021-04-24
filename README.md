@@ -591,3 +591,33 @@ In the `register` method the `options` arg (which is destructured immediately) i
 `argon2` is installed with `yarn add argon2` and is used to hash the password into a passwordDigest, which is persisted as a new user in the database. If the user cannot be created, because the username already exists, it will return a `UserResponse` object with a relevant error, otherwise it will return a a `UserResponse` object with the user.
 
 The `UserResolver` is then added to the resolvers array of the Apollo Server.
+
+To log in as a user, in `src/resolvers/user.ts`:
+
+```ts
+  @Mutation(() => UserResponse)
+  async login(
+    @Arg("options") { username, password }: UsernamePasswordInput,
+    @Ctx() { em }: ApolloContext,
+  ): Promise<UserResponse> {
+    const user = await em.findOne(User, { username });
+    if (!user) {
+      return {
+        errors: [{ field: "username", message: "that username doesn't exist" }],
+      };
+    }
+
+    const validPassword = await argon2.verify(user.password, password);
+    if (!validPassword) {
+      return {
+        errors: [{ field: "password", message: "password doesn't match" }],
+      };
+    }
+
+    return { user };
+  }
+```
+
+Here the login mutation has the `UsernamePasswordInput` for its options arg as well. It attempts to find the user by the passed username, but if it cannot returns a `UserResponse` object with a `FieldError` with relevant messaging. If it did find a user by that username it will check if the hashed password matches the one stored for the user with `argon2.verify`. If it doesn't it returns a `UserResponse` object with a `FieldError` with relevant messaging. If it did match, it will return a `UserResponse` object with the user.
+
+*Generally exposing information about the existence of a user is bad practice, for example if login failed because there was no user for that username, or because the username existed but the password is wrong. I will keep it as it is for now as I don't know if it would cause me to deviate greatly from the tutorial later on.*

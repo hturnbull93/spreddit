@@ -62,4 +62,26 @@ export class UserResolver {
     }
     return { user };
   }
+
+  @Mutation(() => UserResponse)
+  async login(
+    @Arg("options") { username, password }: UsernamePasswordInput,
+    @Ctx() { em }: ApolloContext,
+  ): Promise<UserResponse> {
+    const user = await em.findOne(User, { username });
+    if (!user) {
+      return {
+        errors: [{ field: "username", message: "that username doesn't exist" }],
+      };
+    }
+
+    const validPassword = await argon2.verify(user.password, password);
+    if (!validPassword) {
+      return {
+        errors: [{ field: "password", message: "password doesn't match" }],
+      };
+    }
+
+    return { user };
+  }
 }
