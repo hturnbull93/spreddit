@@ -365,3 +365,43 @@ export type ApolloContext = {
 ```
 
 A simple type where em is the type of `orm.em`.
+
+The context is set up as part of the ApolloServer, in `src/index.ts`:
+
+```ts
+import express from "express";
+import { MikroORM } from "@mikro-orm/core";
+import mikroConfig from "./mikro-orm.config";
+import { ApolloServer } from "apollo-server-express";
+import { buildSchema } from "type-graphql";
+import { HelloResolver } from "./resolvers/hello";
+import { PostResolver } from "./resolvers/post";
+
+const main = async () => {
+  const orm = await MikroORM.init(mikroConfig);
+  await orm.getMigrator().up();
+
+  const app = express();
+
+  const apolloServer = new ApolloServer({
+    schema: await buildSchema({
+      resolvers: [HelloResolver, PostResolver],
+      validate: false,
+    }),
+    context: () => ({ em: orm.em })
+  })
+  apolloServer.applyMiddleware({ app });
+
+  const PORT = 4000;
+  app.listen(PORT, () => {
+    console.log(`server started on port: `, PORT);
+  })
+};
+
+main();
+
+```
+
+Here the `PostResolver` is added to the resolvers array, and context is added as a function that returns ab object with the `em` from `orm.em`. 
+
+Now when running the server and visiting `localhost:4000/graphql` the playground offers the `posts` query with fields for `id`, `title`, `createdAt` and `updatedAt`.
