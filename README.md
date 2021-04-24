@@ -199,7 +199,7 @@ import mikroConfig from "./mikro-orm.config";
 
 const main = async () => {
   const orm = await MikroORM.init(mikroConfig);
-  orm.getMigrator().up();
+  await orm.getMigrator().up();
 
   const post = orm.em.create(Post, { title: "My first post" });
   await orm.em.persistAndFlush(post);
@@ -208,4 +208,6 @@ const main = async () => {
 main();
 ```
 
-`orm.getMigrator().up()` will run the migrations. Then `orm.em.create` is used to create a Post with a title, and `orm.em.persistAndFlush` ise used to persist that to the database.
+`await orm.getMigrator().up()` will run the migrations. Then `orm.em.create` is used to create a Post with a title, and `orm.em.persistAndFlush` ise used to persist that to the database.
+
+*For some reason it was throwing an error when attempting to create the Posts table, however adding `disableForeignKeys: false` to the migrations config fixes this, though I'm not entirely sure how.*
