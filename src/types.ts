@@ -1,6 +1,12 @@
 import { EntityManager, IDatabaseDriver, Connection } from "@mikro-orm/core";
 import { Request, Response } from "express";
 
+declare module "express-session" {
+  interface Session {
+    userId: number;
+  }
+}
+
 export type ApolloContext = {
   em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>;
   req: Request;

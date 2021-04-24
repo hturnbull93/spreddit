@@ -742,7 +742,7 @@ const main = async () => {
 main();
 ```
 
-A `RedisStore` is created by passing `session` to `connectRedis`, and a `redisClient` is created with `redis.createClient()`. The express `app` uses session, passing a name of "qid", an instance of `RedisStore` passing the client and `disableTouch: true` to reduce the amount of traffic to redis. The cookie is given a max age of 10 years (for now), `httpOnly: true`, and `secure` (https) only when in the production environment. The secret is `SESSION_SECRET` taken from the `.env` file, and resave is false;
+A `RedisStore` is created by passing `session` to `connectRedis`, and a `redisClient` is created with `redis.createClient()`. The express `app` uses session, passing a name of "qid", an instance of `RedisStore` passing the client and `disableTouch: true` to reduce the amount of traffic to redis. The cookie is given a max age of 10 years (for now), `httpOnly: true`, and `secure` (https) only when in the production environment. The secret is `SESSION_SECRET` taken from the `.env` file. `resave` is false, as we don't need to manually tell the store to update the session, as redis would do this automatically. `saveUninitialized` is false, because if nothing is added to a new session it does not need to be saved.
 
 The context function gets the req and res from express, and passes those through, which are added to the ApolloContext type in `src/types.ts`:
 
@@ -750,9 +750,17 @@ The context function gets the req and res from express, and passes those through
 import { EntityManager, IDatabaseDriver, Connection } from "@mikro-orm/core";
 import { Request, Response } from "express";
 
+declare module "express-session" {
+  interface Session {
+    userId: number;
+  }
+}
+
 export type ApolloContext = {
   em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>;
   req: Request;
   res: Response;
 };
 ```
+
+Here, a module is declared for "express-session" to allow the TypeScript compiler to accept that a userId can be added to the Session object.
