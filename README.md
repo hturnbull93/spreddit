@@ -474,3 +474,6 @@ To delete a post, in the `PostResolver` class:
 ```
 
 `deletePost` takes an `id` and returns a Boolean. It attempts to find the post by the passed `id`, and returns false if it cannot find it. If it did, it deletes the post and returns true.
+
+Refactors:
+- Move the `createdAt` and `updatedAt` fields for the Post class up above `title`, for consistency with future entities.
