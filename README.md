@@ -127,3 +127,5 @@ export class Post {
 ```
 
 The class `Post` is decorated with `Entity` from MikroORM, to let it know that this class is an entity (relating to tables int he database). Similarly, the `Property` and `PrimaryKey` decorators. `updatedAt`'s decorater takes an object with a function for `onUpdate` that will provide the new date.
+
+The `Post` class is added to the `entities` array when initialising MikroOrm.
