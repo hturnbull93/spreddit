@@ -252,3 +252,57 @@ main();
 ```
 
 `app` is initialised as an express instance, adding a simple get route for `/`, and listen on port 4000.
+
+### GraphQL Schema Setup
+
+For a hello world GraphQL endpoint, in `src/resolvers/hello/ts`:
+
+```ts
+import { Query, Resolver } from "type-graphql";
+
+@Resolver()
+export class HelloResolver {
+  @Query(() => String)
+  hello() {
+    return "Hello world"
+  }
+};
+```
+
+Here the class `HelloResolver` is decorated with `Resolver` from `type-graphql`, and each function/property etc is decorated with either `Query` or `Mutation`. The function `() => String` is passed to `Query` to tell it that this is a function that returns a string.
+
+The resolver can then be imported and used an Apollo Server instance, in `src/index.ts`:
+
+```ts
+import express from "express";
+import { MikroORM } from "@mikro-orm/core";
+// import { Post } from "./entities/Post";
+import mikroConfig from "./mikro-orm.config";
+import { ApolloServer } from "apollo-server-express";
+import { buildSchema } from "type-graphql";
+import { HelloResolver } from "./resolvers/hello";
+
+const main = async () => {
+  const orm = await MikroORM.init(mikroConfig);
+  await orm.getMigrator().up();
+
+  const app = express();
+
+  const apolloServer = new ApolloServer({
+    schema: await buildSchema({
+      resolvers: [HelloResolver],
+      validate: false,
+    }),
+  })
+  apolloServer.applyMiddleware({ app });
+  
+  const PORT = 4000;
+  app.listen(PORT, () => {
+    console.log(`server started on port: `, PORT);
+  })
+};
+
+main();
+```
+
+Here `apolloServer` is an instance of `ApolloServer`, which takes an config object with property `schema` which assigned with `buildSchema` from `type-graphql`, with the array of resolvers. Validation is also turned off. Then the `apolloServer` applies the express app as middleware, creating the GraphQL endpoint.
