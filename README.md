@@ -219,3 +219,9 @@ Install dependencies:
 ```
 yarn add express apollo-server-express graphql type-graphql
 ```
+
+Install express types with:
+
+```
+yarn add -D @types/express
+```
