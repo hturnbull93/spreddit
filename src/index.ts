@@ -32,6 +32,7 @@ const main = async () => {
       },
       secret: SESSION_SECRET,
       resave: false,
+      saveUninitialized: false,
     }),
   );
 
