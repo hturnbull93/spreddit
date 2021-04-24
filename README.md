@@ -456,3 +456,21 @@ To update a post, in the `PostResolver` class:
 ```
 
 Here `updatePost` takes two arguments: `title` and `id`, which are decorated, and `title` is also nullable. The method attempts to find the post, and if it does not find one by the passed `id` it will return null. It will then set and persist the new title, if the title isn't undefined/null. Then it returns the post.
+
+To delete a post, in the `PostResolver` class:
+
+```ts
+  @Mutation(() => Boolean)
+  async deletePost(
+    @Arg("id") id: number,
+    @Ctx() { em }: ApolloContext
+    ): Promise<Boolean> {
+      const post = await em.findOne(Post, { id });
+      if (!post) return false; 
+      
+      await em.removeAndFlush(post);
+      return true;
+  }
+```
+
+`deletePost` takes an `id` and returns a Boolean. It attempts to find the post by the passed `id`, and returns false if it cannot find it. If it did, it deletes the post and returns true.

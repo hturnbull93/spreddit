@@ -42,4 +42,16 @@ export class PostResolver {
     }
     return post;
   }
+
+  @Mutation(() => Boolean)
+  async deletePost(
+    @Arg("id") id: number,
+    @Ctx() { em }: ApolloContext
+    ): Promise<Boolean> {
+      const post = await em.findOne(Post, { id });
+      if (!post) return false; 
+      
+      await em.removeAndFlush(post);
+      return true;
+  }
 };
