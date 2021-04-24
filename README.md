@@ -399,9 +399,22 @@ const main = async () => {
 };
 
 main();
-
 ```
 
 Here the `PostResolver` is added to the resolvers array, and context is added as a function that returns ab object with the `em` from `orm.em`. 
 
 Now when running the server and visiting `localhost:4000/graphql` the playground offers the `posts` query with fields for `id`, `title`, `createdAt` and `updatedAt`.
+
+To get a single post, in the `PostResolver` class:
+
+```ts
+  @Query(() => Post, { nullable: true })
+  post(
+    @Arg("id") id: number,
+    @Ctx() { em }: ApolloContext
+    ): Promise<Post | null> {
+    return em.findOne(Post, { id });
+  }
+```
+
+This query is typed to return a `Post`, the options object containing `nullable: true` indicates it could also return null, if a post by that id is not found. Similarly, the method returns a Promise that resolves to a union of `Post` and `null`. A parameter decorated with `Arg` from `type-graphql` as `id` is a number. The method finds the `Post` with the passed `id`.
