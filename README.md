@@ -143,3 +143,24 @@ Add the config in `package.json`:
     ]
   }
 ```
+
+Add `src/mikro-orm.config.ts` exporting the config object we already had set up in `src/index.ts`:
+
+```ts
+import { MikroORM } from "@mikro-orm/core";
+import { DB_USER, DB_PASS, __prod__ } from "./constants";
+import { Post } from "./entities/Post";
+
+export default {
+  entities: [Post],
+  dbName: 'lireddit',
+  user: DB_USER,
+  password: DB_PASS,
+  type: 'postgresql',
+  debug: !__prod__,
+} as Parameters<typeof MikroORM.init>[0];
+```
+
+`as Parameters<typeof MikroORM.init>[0]` is used to get the type of the `MikroORM.init` function, and as this config object is the first parameter of several optional ones, select the first one of the array.
+
+Then import that back into `src/index.ts` and pass to `MikroORM.init`.
