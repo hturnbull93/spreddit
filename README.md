@@ -418,3 +418,19 @@ To get a single post, in the `PostResolver` class:
 ```
 
 This query is typed to return a `Post`, the options object containing `nullable: true` indicates it could also return null, if a post by that id is not found. Similarly, the method returns a Promise that resolves to a union of `Post` and `null`. A parameter decorated with `Arg` from `type-graphql` as `id` is a number. The method finds the `Post` with the passed `id`.
+
+To create a post, in the `PostResolver` class:
+
+```ts
+  @Mutation(() => Post)
+  async createPost(
+    @Arg("title") title: string,
+    @Ctx() { em }: ApolloContext
+    ): Promise<Post> {
+    const post = em.create(Post, { title })
+    await em.persistAndFlush(post);
+    return post;
+  }
+```
+
+The `createPost` mutation is decorated with `Mutation` from `type-graphql`, and returns a `Post`. It takes an arg of `title` which is a string, and uses `em` to create a post with that title, waits for it to be persisted to the database, then returns the post.
