@@ -797,3 +797,5 @@ Now on the `login` mutation on `UserResolver`:
 The `req` is destructured from the context, `req.session.userId` is set with the user's id.
 
 To make sure the cookie can be set via the GraphQL playground, open settings and add `"request.credentials": "include"` to the json object.
+
+Also, set the same userId in session after the register mutation, so the user is essentially logged in after registration.
