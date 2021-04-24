@@ -45,25 +45,21 @@ export class UserResolver {
     @Arg("options") { username, password }: UsernamePasswordInput,
     @Ctx() { em }: ApolloContext,
   ): Promise<UserResponse> {
+    const errors = [];
     if (username.length < 2) {
-      return {
-        errors: [
-          {
-            field: "username",
-            message: "length muse be at least 2 characters",
-          },
-        ],
-      };
+      errors.push({
+        field: "username",
+        message: "length muse be at least 2 characters",
+      });
     }
     if (password.length < 2) {
-      return {
-        errors: [
-          {
-            field: "password",
-            message: "length muse be at least 2 characters",
-          },
-        ],
-      };
+      errors.push({
+        field: "password",
+        message: "length muse be at least 2 characters",
+      });
+    }
+    if (errors.length) {
+      return { errors };
     }
 
     const passwordDigest = await argon2.hash(password);
