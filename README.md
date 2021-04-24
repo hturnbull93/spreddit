@@ -511,3 +511,5 @@ export class User {
 ```
 
 It is very similar to the `Post` entity, however the property `username` is unique, and the property `password (which will be the hashed password digest), is not a field exposed over GraphQL.
+
+Add `User` to the `entities` array in the MikroORM config, and run `migration:create`.
