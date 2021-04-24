@@ -799,3 +799,18 @@ The `req` is destructured from the context, `req.session.userId` is set with the
 To make sure the cookie can be set via the GraphQL playground, open settings and add `"request.credentials": "include"` to the json object.
 
 Also, set the same userId in session after the register mutation, so the user is essentially logged in after registration.
+
+Adding a `me` query to `UserResolver`: 
+
+```ts
+  @Query(() => User, { nullable: true })
+  async me(@Ctx() { em, req }: ApolloContext): Promise<User | null> {
+    const { userId } = req.session;
+    if (!userId) return null;
+
+    const user = await em.findOne(User, { id: userId });
+    return user;
+  }
+```
+
+Here, the query gets the `userId` off the session, if it does not exist, return null. Otherwise it will find the user with that id and return that. This could be null if the user doesn't exist by that id, in the case that the user potentially was deleted while the cookie was still active. This query is useful to periodically check if the user still exists and who they are.

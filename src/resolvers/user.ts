@@ -8,6 +8,7 @@ import {
   InputType,
   Mutation,
   ObjectType,
+  Query,
   Resolver,
 } from "type-graphql";
 
@@ -40,6 +41,15 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+  @Query(() => User, { nullable: true })
+  async me(@Ctx() { em, req }: ApolloContext): Promise<User | null> {
+    const { userId } = req.session;
+    if (!userId) return null;
+
+    const user = await em.findOne(User, { id: userId });
+    return user;
+  }
+
   @Mutation(() => UserResponse)
   async register(
     @Arg("options") { username, password }: UsernamePasswordInput,
