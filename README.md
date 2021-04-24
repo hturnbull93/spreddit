@@ -64,3 +64,5 @@ Install Mikro ORM and Postgresql driver PG with:
 ```shell
 yarn add @mikro-orm/cli @mikro-orm/core @mikro-orm/migrations @mikro-orm/postgresql pg
 ```
+
+Install Postgresql following the steps in [this article](https://harshityadav95.medium.com/postgresql-in-windows-subsystem-for-linux-wsl-6dc751ac1ff3).
