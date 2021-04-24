@@ -172,3 +172,10 @@ The purpose of using the cli is to be able to easily perform migrations. the mig
 
 Then import that back into `src/index.ts` and pass to `MikroORM.init`. This is not strictly necessary as it if called without an object would go to find the object based on the config in `package.json`.
 
+### Running a Migration for Posts
+
+The cli tool needs `ts-node` to work, installed with:
+
+```shell
+yarn add -D ts-node
+```
