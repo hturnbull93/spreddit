@@ -6,9 +6,9 @@ import { Arg, Ctx, Field, InputType, Mutation, Resolver } from "type-graphql";
 @InputType()
 class UsernamePasswordInput {
   @Field()
-  username: string
+  username: string;
   @Field()
-  password: string
+  password: string;
 }
 
 @Resolver()
@@ -25,10 +25,10 @@ export class UserResolver {
         username,
         password: passwordDigest,
       });
-      await em.persistAndFlush(user)
+      await em.persistAndFlush(user);
     } catch (error) {
       return null;
     }
     return user;
   }
-};
+}

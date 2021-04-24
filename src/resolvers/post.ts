@@ -12,17 +12,17 @@ export class PostResolver {
   @Query(() => Post, { nullable: true })
   post(
     @Arg("id") id: number,
-    @Ctx() { em }: ApolloContext
-    ): Promise<Post | null> {
+    @Ctx() { em }: ApolloContext,
+  ): Promise<Post | null> {
     return em.findOne(Post, { id });
   }
 
   @Mutation(() => Post)
   async createPost(
     @Arg("title") title: string,
-    @Ctx() { em }: ApolloContext
-    ): Promise<Post> {
-    const post = em.create(Post, { title })
+    @Ctx() { em }: ApolloContext,
+  ): Promise<Post> {
+    const post = em.create(Post, { title });
     await em.persistAndFlush(post);
     return post;
   }
@@ -31,12 +31,12 @@ export class PostResolver {
   async updatePost(
     @Arg("title", () => String, { nullable: true }) title: string,
     @Arg("id") id: number,
-    @Ctx() { em }: ApolloContext
-    ): Promise<Post | null> {
+    @Ctx() { em }: ApolloContext,
+  ): Promise<Post | null> {
     const post = await em.findOne(Post, { id });
     if (!post) return null;
-  
-    if (typeof title !== 'undefined') {
+
+    if (typeof title !== "undefined") {
       post.title = title;
       await em.persistAndFlush(post);
     }
@@ -46,12 +46,12 @@ export class PostResolver {
   @Mutation(() => Boolean)
   async deletePost(
     @Arg("id") id: number,
-    @Ctx() { em }: ApolloContext
-    ): Promise<Boolean> {
-      const post = await em.findOne(Post, { id });
-      if (!post) return false; 
-      
-      await em.removeAndFlush(post);
-      return true;
+    @Ctx() { em }: ApolloContext,
+  ): Promise<Boolean> {
+    const post = await em.findOne(Post, { id });
+    if (!post) return false;
+
+    await em.removeAndFlush(post);
+    return true;
   }
-};
+}

@@ -17,14 +17,14 @@ const main = async () => {
       resolvers: [UserResolver, PostResolver],
       validate: false,
     }),
-    context: () => ({ em: orm.em })
-  })
+    context: () => ({ em: orm.em }),
+  });
   apolloServer.applyMiddleware({ app });
 
   const PORT = 4000;
   app.listen(PORT, () => {
     console.log(`server started on port: `, PORT);
-  })
+  });
 };
 
 main();
