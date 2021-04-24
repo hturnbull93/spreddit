@@ -434,3 +434,25 @@ To create a post, in the `PostResolver` class:
 ```
 
 The `createPost` mutation is decorated with `Mutation` from `type-graphql`, and returns a `Post`. It takes an arg of `title` which is a string, and uses `em` to create a post with that title, waits for it to be persisted to the database, then returns the post.
+
+To update a post, in the `PostResolver` class:
+
+```ts
+  @Mutation(() => Post, { nullable: true })
+  async updatePost(
+    @Arg("title", () => String, { nullable: true }) title: string,
+    @Arg("id") id: number,
+    @Ctx() { em }: ApolloContext
+    ): Promise<Post | null> {
+    const post = await em.findOne(Post, { id });
+    if (!post) return null;
+  
+    if (typeof title !== 'undefined') {
+      post.title = title;
+      await em.persistAndFlush(post);
+    }
+    return post;
+  }
+```
+
+Here `updatePost` takes two arguments: `title` and `id`, which are decorated, and `title` is also nullable. The method attempts to find the post, and if it does not find one by the passed `id` it will return null. It will then set and persist the new title, if the title isn't undefined/null. Then it returns the post.
