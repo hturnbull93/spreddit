@@ -477,3 +477,37 @@ To delete a post, in the `PostResolver` class:
 
 Refactors:
 - Move the `createdAt` and `updatedAt` fields for the Post class up above `title`, for consistency with future entities.
+
+### Users and Authentication
+
+Users need their own entity, so in `src/entities/User.ts`:
+
+```ts
+import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
+import { Field, Int, ObjectType } from "type-graphql";
+
+@ObjectType()
+@Entity()
+export class User {
+  @Field(() => Int)
+  @PrimaryKey()
+  id!: number;
+
+  @Field(() => String)
+  @Property({ type: 'date', })
+  createdAt = new Date();
+
+  @Field(() => String)
+  @Property({ type: 'date', onUpdate: () => new Date() })
+  updatedAt = new Date();
+
+  @Field(() => String)
+  @Property({ type: 'text', unique: true })
+  username!: string;
+
+  @Property({ type: 'text' })
+  password!: string;
+}
+```
+
+It is very similar to the `Post` entity, however the property `username` is unique, and the property `password (which will be the hashed password digest), is not a field exposed over GraphQL.
