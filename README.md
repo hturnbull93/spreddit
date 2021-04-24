@@ -25,3 +25,9 @@ Install dev dependencies:
 ```shell
 yarn add -D @types/node typescript
 ```
+
+Generate tsconfig.json, choosing nodejs:
+
+```shell
+npx tsconfig.json
+```
