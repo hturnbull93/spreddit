@@ -7,6 +7,7 @@
     "watch": "tsc -w",
     "dev": "nodemon dist/index.js",
     "start": "node dist/index.js",
+    "migration:create": "npx mikro-orm migration:create",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
