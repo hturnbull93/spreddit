@@ -37,3 +37,9 @@ Add script to watch in package.json:
 ```json
   "watch": "tsc -w",
 ```
+
+Add script to start in package.json:
+
+```json
+  "start": "node dist/index.js",
+```
