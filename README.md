@@ -554,3 +554,5 @@ export class UserResolver {
 ```
 
 The `UsernamePasswordInput` class is decorated with `InputType`, and `Field` for each property. This is used in the `register` method as a type for the `options` arg (which is destructured immediately). `argon2` is installed with `yarn add argon2` and is used to hash the password into a passwordDigest, which is persisted as a new user in the database. If the user cannot be created, because the username already exists, it will return null, otherwise it will return the user.
+
+The `UserResolver` is then added to the resolvers array of the Apollo Server.
