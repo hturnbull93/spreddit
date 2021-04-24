@@ -147,11 +147,16 @@ Add the config in `package.json`:
 Add `src/mikro-orm.config.ts` exporting the config object we already had set up in `src/index.ts`:
 
 ```ts
+import path from "path";
 import { MikroORM } from "@mikro-orm/core";
 import { DB_USER, DB_PASS, __prod__ } from "./constants";
 import { Post } from "./entities/Post";
 
 export default {
+  migrations: {
+    path: path.join(__dirname, './migrations'),
+    pattern: /^[\w-]+\d+\.[tj]s$/,
+  },
   entities: [Post],
   dbName: 'lireddit',
   user: DB_USER,
@@ -162,6 +167,8 @@ export default {
 ```
 
 `as Parameters<typeof MikroORM.init>[0]` is used to get the type of the `MikroORM.init` function, and as this config object is the first parameter of several optional ones, select the first one of the array.
+
+The purpose of using the cli is to be able to easily perform migrations. the migrations object contains a path to the migrations directory, and also a pattern for either `.js` or `.ts` files (so it will work after compilation to js).
 
 Then import that back into `src/index.ts` and pass to `MikroORM.init`. This is not strictly necessary as it if called without an object would go to find the object based on the config in `package.json`.
 
