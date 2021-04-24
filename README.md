@@ -621,3 +621,52 @@ To log in as a user, in `src/resolvers/user.ts`:
 Here the login mutation has the `UsernamePasswordInput` for its options arg as well. It attempts to find the user by the passed username, but if it cannot returns a `UserResponse` object with a `FieldError` with relevant messaging. If it did find a user by that username it will check if the hashed password matches the one stored for the user with `argon2.verify`. If it doesn't it returns a `UserResponse` object with a `FieldError` with relevant messaging. If it did match, it will return a `UserResponse` object with the user.
 
 *Generally exposing information about the existence of a user is bad practice, for example if login failed because there was no user for that username, or because the username existed but the password is wrong. I will keep it as it is for now as I don't know if it would cause me to deviate greatly from the tutorial later on.*
+
+To add some validation to user registration, if either the username or password is less that 2 characters in length return a `UserResponse` with a relevant `FieldError`. Also, handle an error more specifically by the code when attempting to persist the user with a potentially duplicate username:
+
+```ts
+  @Mutation(() => UserResponse)
+  async register(
+    @Arg("options") { username, password }: UsernamePasswordInput,
+    @Ctx() { em }: ApolloContext,
+  ): Promise<UserResponse> {
+    if (username.length < 2) {
+      return {
+        errors: [
+          {
+            field: "username",
+            message: "length muse be at least 2 characters",
+          },
+        ],
+      };
+    }
+    if (password.length < 2) {
+      return {
+        errors: [
+          {
+            field: "password",
+            message: "length muse be at least 2 characters",
+          },
+        ],
+      };
+    }
+
+    const passwordDigest = await argon2.hash(password);
+    const user = em.create(User, {
+      username,
+      password: passwordDigest,
+    });
+    try {
+      await em.persistAndFlush(user);
+    } catch (error) {
+      if (error.code === "23505") {
+        return {
+          errors: [
+            { field: "username", message: "that username is already in use" },
+          ],
+        };
+      }
+    }
+    return { user };
+  }
+```

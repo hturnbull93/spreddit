@@ -45,20 +45,42 @@ export class UserResolver {
     @Arg("options") { username, password }: UsernamePasswordInput,
     @Ctx() { em }: ApolloContext,
   ): Promise<UserResponse> {
-    const passwordDigest = await argon2.hash(password);
-    let user;
-    try {
-      user = em.create(User, {
-        username,
-        password: passwordDigest,
-      });
-      await em.persistAndFlush(user);
-    } catch (error) {
+    if (username.length < 2) {
       return {
         errors: [
-          { field: "username", message: "that username is already in use" },
+          {
+            field: "username",
+            message: "length muse be at least 2 characters",
+          },
         ],
       };
+    }
+    if (password.length < 2) {
+      return {
+        errors: [
+          {
+            field: "password",
+            message: "length muse be at least 2 characters",
+          },
+        ],
+      };
+    }
+
+    const passwordDigest = await argon2.hash(password);
+    const user = em.create(User, {
+      username,
+      password: passwordDigest,
+    });
+    try {
+      await em.persistAndFlush(user);
+    } catch (error) {
+      if (error.code === "23505") {
+        return {
+          errors: [
+            { field: "username", message: "that username is already in use" },
+          ],
+        };
+      }
     }
     return { user };
   }
