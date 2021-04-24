@@ -306,3 +306,34 @@ main();
 ```
 
 Here `apolloServer` is an instance of `ApolloServer`, which takes an config object with property `schema` which assigned with `buildSchema` from `type-graphql`, with the array of resolvers. Validation is also turned off. Then the `apolloServer` applies the express app as middleware, creating the GraphQL endpoint.
+
+### Post Resolvers for CRUD Operations
+
+In order for the Post class to be recognised as a GraphQL type, the class can be decorated with `ObjectType` and the properties with `Field` from `type-graphql`:
+
+In `src/entities/Post.ts`:
+
+```ts
+import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
+import { Field, Int, ObjectType } from "type-graphql";
+
+@ObjectType()
+@Entity()
+export class Post {
+  @Field(() => Int)
+  @PrimaryKey()
+  id!: number;
+  
+  @Field(() => String)
+  @Property({ type: 'text' })
+  title!: string;
+  
+  @Field(() => String)
+  @Property({ type: 'date', })
+  createdAt = new Date();
+  
+  @Field(() => String)
+  @Property({ type: 'date', onUpdate: () => new Date() })
+  updatedAt = new Date();
+}
+```
