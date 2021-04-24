@@ -513,3 +513,44 @@ export class User {
 It is very similar to the `Post` entity, however the property `username` is unique, and the property `password (which will be the hashed password digest), is not a field exposed over GraphQL.
 
 Add `User` to the `entities` array in the MikroORM config, and run `migration:create`.
+
+To register a user, in `src/resolvers/user.ts`:
+
+```ts
+import argon2 from "argon2";
+import { User } from "../entities/User";
+import { ApolloContext } from "../types";
+import { Arg, Ctx, Field, InputType, Mutation, Resolver } from "type-graphql";
+
+@InputType()
+class UsernamePasswordInput {
+  @Field()
+  username: string
+  @Field()
+  password: string
+}
+
+@Resolver()
+export class UserResolver {
+  @Mutation(() => User, { nullable: true })
+  async register(
+    @Arg("options") { username, password }: UsernamePasswordInput,
+    @Ctx() { em }: ApolloContext,
+  ): Promise<User | null> {
+    const passwordDigest = await argon2.hash(password);
+    let user;
+    try {
+      user = em.create(User, {
+        username,
+        password: passwordDigest,
+      });
+      await em.persistAndFlush(user)
+    } catch (error) {
+      return null;
+    }
+    return user;
+  }
+};
+```
+
+The `UsernamePasswordInput` class is decorated with `InputType`, and `Field` for each property. This is used in the `register` method as a type for the `options` arg (which is destructured immediately). `argon2` is installed with `yarn add argon2` and is used to hash the password into a passwordDigest, which is persisted as a new user in the database. If the user cannot be created, because the username already exists, it will return null, otherwise it will return the user.
