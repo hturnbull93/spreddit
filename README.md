@@ -684,3 +684,62 @@ yarn add -D @types/redis @types/connect-redis @types/express-session
 ```
 
 Set up redis following [this article](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-redis).
+
+Now in `src/index.ts`:
+
+```ts
+import express from "express";
+import { MikroORM } from "@mikro-orm/core";
+import mikroConfig from "./mikro-orm.config";
+import { ApolloServer } from "apollo-server-express";
+import { buildSchema } from "type-graphql";
+import redis from "redis";
+import session from "express-session";
+import connectRedis from "connect-redis";
+
+import { PostResolver } from "./resolvers/post";
+import { UserResolver } from "./resolvers/user";
+import { SESSION_SECRET, __prod__ } from "./constants";
+
+const main = async () => {
+  const orm = await MikroORM.init(mikroConfig);
+  await orm.getMigrator().up();
+
+  const app = express();
+
+  const RedisStore = connectRedis(session);
+  const redisClient = redis.createClient();
+  app.use(
+    session({
+      name: "qid",
+      store: new RedisStore({ client: redisClient, disableTouch: true }),
+      cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
+        httpOnly: true,
+        secure: __prod__,
+        sameSite: "lax",
+      },
+      secret: SESSION_SECRET,
+      resave: false,
+    }),
+  );
+
+  const apolloServer = new ApolloServer({
+    schema: await buildSchema({
+      resolvers: [UserResolver, PostResolver],
+      validate: false,
+    }),
+    context: ({ req, res }): ApolloContext => ({ em: orm.em, req, res }),
+  });
+  apolloServer.applyMiddleware({ app });
+
+  const PORT = 4000;
+  app.listen(PORT, () => {
+    console.log(`server started on port: `, PORT);
+  });
+};
+
+main();
+```
+
+A `RedisStore` is created by passing `session` to `connectRedis`, and a `redisClient` is created with `redis.createClient()`. The express `app` uses session, passing a name of "qid", an instance of `RedisStore` passing the client and `disableTouch: true` to reduce the amount of traffic to redis. The cookie is given a max age of 10 years (for now), `httpOnly: true`, and `secure` (https) only when in the production environment. The secret is `SESSION_SECRET` taken from the `.env` file, and resave is false;
