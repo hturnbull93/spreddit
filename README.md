@@ -99,7 +99,7 @@ const main = async () => {
 main();
 ```
 
-The `main` function is used to be able to wrap the await. Imported from `constants.ts` are the environmental variables for the database, and one that indiciates if `NODE_ENV` is `production`. 
+The `main` function is used to be able to wrap the await. Imported from `constants.ts` are the environmental variables for the database, and one that indicates if `NODE_ENV` is `production`. 
 
 ### Post Entity
 
@@ -126,7 +126,7 @@ export class Post {
 }
 ```
 
-The class `Post` is decorated with `Entity` from MikroORM, to let it know that this class is an entity (relating to tables int he database). Similarly, the `Property` and `PrimaryKey` decorators. `updatedAt`'s decorater takes an object with a function for `onUpdate` that will provide the new date.
+The class `Post` is decorated with `Entity` from MikroORM, to let it know that this class is an entity (relating to tables int he database). Similarly, the `Property` and `PrimaryKey` decorators. `updatedAt`'s decorator takes an object with a function for `onUpdate` that will provide the new date.
 
 The `Post` class is added to the `entities` array when initialising MikroOrm.
 
@@ -163,4 +163,5 @@ export default {
 
 `as Parameters<typeof MikroORM.init>[0]` is used to get the type of the `MikroORM.init` function, and as this config object is the first parameter of several optional ones, select the first one of the array.
 
-Then import that back into `src/index.ts` and pass to `MikroORM.init`.
+Then import that back into `src/index.ts` and pass to `MikroORM.init`. This is not strictly necessary as it if called without an object would go to find the object based on the config in `package.json`.
+
