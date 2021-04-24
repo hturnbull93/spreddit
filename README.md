@@ -80,7 +80,7 @@ DB_USER=myPostgresqlUsername
 DB_PASS=myPostgresqlPassword
 ```
 
-Initialise orm in `./src/index.ts`:
+Initialise orm in `src/index.ts`:
 
 ```ts
 import { MikroORM } from "@mikro-orm/core";
@@ -100,3 +100,30 @@ main();
 ```
 
 The `main` function is used to be able to wrap the await. Imported from `constants.ts` are the environmental variables for the database, and one that indiciates if `NODE_ENV` is `production`. 
+
+### Post Entity
+
+MikroORM works with entities, which represent the items in the tables in the database.
+
+In `src/entities/Post.ts`:
+
+```ts
+import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
+
+@Entity()
+export class Post {
+  @PrimaryKey()
+  id!: number;
+
+  @Property()
+  title!: string;
+
+  @Property()
+  createdAt = new Date();
+
+  @Property({ onUpdate: () => new Date() })
+  updatedAt = new Date();
+}
+```
+
+The class `Post` is decorated with `Entity` from MikroORM, to let it know that this class is an entity (relating to tables int he database). Similarly, the `Property` and `PrimaryKey` decorators. `updatedAt`'s decorater takes an object with a function for `onUpdate` that will provide the new date.
