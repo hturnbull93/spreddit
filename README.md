@@ -43,3 +43,15 @@ Add script to start in package.json:
 ```json
   "start": "node dist/index.js",
 ```
+
+Install nodemon:
+
+```shell
+yarn add -D nodemon
+```
+
+Add dev script to watch for file changes in dist:
+
+```json
+    "dev": "nodemon dist/index.js",
+```
