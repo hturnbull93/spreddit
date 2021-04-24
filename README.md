@@ -765,3 +765,35 @@ export type ApolloContext = {
 ```
 
 Here, a module is declared for "express-session" to allow the TypeScript compiler to accept that a userId can be added to the Session object.
+
+Now on the `login` mutation on `UserResolver`:
+
+```ts
+  @Mutation(() => UserResponse)
+  async login(
+    @Arg("options") { username, password }: UsernamePasswordInput,
+    @Ctx() { em, req }: ApolloContext,
+  ): Promise<UserResponse> {
+    const user = await em.findOne(User, { username });
+    if (!user) {
+      return {
+        errors: [{ field: "username", message: "that username doesn't exist" }],
+      };
+    }
+
+    const validPassword = await argon2.verify(user.password, password);
+    if (!validPassword) {
+      return {
+        errors: [{ field: "password", message: "password doesn't match" }],
+      };
+    }
+
+    req.session.userId = user.id;
+
+    return { user };
+  }
+```
+
+The `req` is destructured from the context, `req.session.userId` is set with the user's id.
+
+To make sure the cookie can be set via the GraphQL playground, open settings and add `"request.credentials": "include"` to the json object.

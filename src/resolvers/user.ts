@@ -84,7 +84,7 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async login(
     @Arg("options") { username, password }: UsernamePasswordInput,
-    @Ctx() { em }: ApolloContext,
+    @Ctx() { em, req }: ApolloContext,
   ): Promise<UserResponse> {
     const user = await em.findOne(User, { username });
     if (!user) {
@@ -99,6 +99,8 @@ export class UserResolver {
         errors: [{ field: "password", message: "password doesn't match" }],
       };
     }
+
+    req.session.userId = user.id;
 
     return { user };
   }
