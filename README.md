@@ -666,3 +666,21 @@ To add some validation to user registration, if either the username or password 
     return { user };
   }
 ```
+
+### Sessions and Authentication
+
+Redis will be used to store user session tokens for quick access.
+
+Install dependencies with:
+
+```shell
+yarn add redis connect-redis express-session
+```
+
+Install types with:
+
+```shell
+yarn add -D @types/redis @types/connect-redis @types/express-session
+```
+
+Set up redis following [this article](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-redis).
