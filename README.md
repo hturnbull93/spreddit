@@ -355,3 +355,13 @@ export class PostResolver {
 ```
 
 Here we are able to add the type for the `Query` decorator as an array containing `Post`, which works because we decorated `Post` as an `ObjectType`. The first parameter for the query is the context object, which is decorated with `Ctx` and typed with `ApolloContext` from `src/types.ts`:
+
+```ts
+import { EntityManager, IDatabaseDriver, Connection } from "@mikro-orm/core";
+
+export type ApolloContext = {
+  em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>
+}
+```
+
+A simple type where em is the type of `orm.em`.
