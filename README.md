@@ -188,4 +188,24 @@ npx mikro-orm migration:create
 
 This creates a class in the migrations folder, timestamped, such as `Migration20210424130609.ts`, which contains a method `up` that will run SQL code to perform the migration.
 
-However, this gives the createdAt and updatedAt colums the type of jsonb, when they should be dates, so specify the type in the Post entity as date, and delete the file and rerun the migration.
+However, this gives the createdAt and updatedAt columns the type of jsonb, when they should be dates, so specify the type in the Post entity as date, and delete the file and rerun the migration:create command.
+
+In `src/index.ts` after initialising MikroORM, run migrations:
+
+```ts
+import { MikroORM } from "@mikro-orm/core";
+import { Post } from "./entities/Post";
+import mikroConfig from "./mikro-orm.config";
+
+const main = async () => {
+  const orm = await MikroORM.init(mikroConfig);
+  orm.getMigrator().up();
+
+  const post = orm.em.create(Post, { title: "My first post" });
+  await orm.em.persistAndFlush(post);
+};
+
+main();
+```
+
+`orm.getMigrator().up()` will run the migrations. Then `orm.em.create` is used to create a Post with a title, and `orm.em.persistAndFlush` ise used to persist that to the database.
