@@ -211,3 +211,11 @@ main();
 `await orm.getMigrator().up()` will run the migrations. Then `orm.em.create` is used to create a Post with a title, and `orm.em.persistAndFlush` ise used to persist that to the database.
 
 *For some reason it was throwing an error when attempting to create the Posts table, however adding `disableForeignKeys: false` to the migrations config fixes this, though I'm not entirely sure how.*
+
+### Server Setup
+
+Install dependencies:
+
+```
+yarn add express apollo-server-express graphql type-graphql
+```
