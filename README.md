@@ -882,3 +882,9 @@ export default Register;
 ```
 
 As this file is under the `pages` directory, Next.js will create a route based on the filename and render this component. This works on sub-directories too. 
+
+Install formik with:
+
+```shell
+yarn add formik
+```
