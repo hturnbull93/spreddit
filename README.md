@@ -96,7 +96,7 @@ DB_USER=myPostgresqlUsername
 DB_PASS=myPostgresqlPassword
 ```
 
-Initialise orm in `src/index.ts`:
+Initialise orm in `server/src/index.ts`:
 
 ```ts
 import { MikroORM } from "@mikro-orm/core";
@@ -121,7 +121,7 @@ The `main` function is used to be able to wrap the await. Imported from `constan
 
 MikroORM works with entities, which represent the items in the tables in the database.
 
-In `src/entities/Post.ts`:
+In `server/src/entities/Post.ts`:
 
 ```ts
 import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
@@ -154,13 +154,13 @@ Add the config in `package.json`:
   "mikro-orm": {
     "useTsNode": true,
     "configPaths": [
-      "./src/mikro-orm.config.ts",
+      "./server/src/mikro-orm.config.ts",
       "./dist/mikro-orm.config.js"
     ]
   }
 ```
 
-Add `src/mikro-orm.config.ts` exporting the config object we already had set up in `src/index.ts`:
+Add `server/src/mikro-orm.config.ts` exporting the config object we already had set up in `server/src/index.ts`:
 
 ```ts
 import path from "path";
@@ -186,7 +186,7 @@ export default {
 
 The purpose of using the cli is to be able to easily perform migrations. the migrations object contains a path to the migrations directory, and also a pattern for either `.js` or `.ts` files (so it will work after compilation to js).
 
-Then import that back into `src/index.ts` and pass to `MikroORM.init`. This is not strictly necessary as it if called without an object would go to find the object based on the config in `package.json`.
+Then import that back into `server/src/index.ts` and pass to `MikroORM.init`. This is not strictly necessary as it if called without an object would go to find the object based on the config in `package.json`.
 
 ### Running a Migration for Posts
 
@@ -206,7 +206,7 @@ This creates a class in the migrations folder, timestamped, such as `Migration20
 
 However, this gives the createdAt and updatedAt columns the type of jsonb, when they should be dates, so specify the type in the Post entity as date, and delete the file and rerun the migration:create command.
 
-In `src/index.ts` after initialising MikroORM, run migrations:
+In `server/src/index.ts` after initialising MikroORM, run migrations:
 
 ```ts
 import { MikroORM } from "@mikro-orm/core";
@@ -242,7 +242,7 @@ Install express types with:
 yarn add -D @types/express
 ```
 
-In `src/index.ts`:
+In `server/src/index.ts`:
 
 ```ts
 import express from "express";
@@ -271,7 +271,7 @@ main();
 
 ### GraphQL Schema Setup
 
-For a hello world GraphQL endpoint, in `src/resolvers/hello/ts`:
+For a hello world GraphQL endpoint, in `server/src/resolvers/hello/ts`:
 
 ```ts
 import { Query, Resolver } from "type-graphql";
@@ -287,7 +287,7 @@ export class HelloResolver {
 
 Here the class `HelloResolver` is decorated with `Resolver` from `type-graphql`, and each function/property etc is decorated with either `Query` or `Mutation`. The function `() => String` is passed to `Query` to tell it that this is a function that returns a string.
 
-The resolver can then be imported and used an Apollo Server instance, in `src/index.ts`:
+The resolver can then be imported and used an Apollo Server instance, in `server/src/index.ts`:
 
 ```ts
 import express from "express";
@@ -327,7 +327,7 @@ Here `apolloServer` is an instance of `ApolloServer`, which takes an config obje
 
 In order for the Post class to be recognised as a GraphQL type, the class can be decorated with `ObjectType` and the properties with `Field` from `type-graphql`:
 
-In `src/entities/Post.ts`:
+In `server/src/entities/Post.ts`:
 
 ```ts
 import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
@@ -354,11 +354,11 @@ export class Post {
 }
 ```
 
-Then adding a resolver to get posts, in `src/resolvers/post.ts`:
+Then adding a resolver to get posts, in `server/src/resolvers/post.ts`:
 
 ```ts
-import { Post } from "src/entities/Post";
-import { ApolloContext } from "src/types";
+import { Post } from "server/src/entities/Post";
+import { ApolloContext } from "server/src/types";
 import { Ctx, Query, Resolver } from "type-graphql";
 
 @Resolver()
@@ -370,7 +370,7 @@ export class PostResolver {
 };
 ```
 
-Here we are able to add the type for the `Query` decorator as an array containing `Post`, which works because we decorated `Post` as an `ObjectType`. The first parameter for the query is the context object, which is decorated with `Ctx` and typed with `ApolloContext` from `src/types.ts`:
+Here we are able to add the type for the `Query` decorator as an array containing `Post`, which works because we decorated `Post` as an `ObjectType`. The first parameter for the query is the context object, which is decorated with `Ctx` and typed with `ApolloContext` from `server/src/types.ts`:
 
 ```ts
 import { EntityManager, IDatabaseDriver, Connection } from "@mikro-orm/core";
@@ -382,7 +382,7 @@ export type ApolloContext = {
 
 A simple type where em is the type of `orm.em`.
 
-The context is set up as part of the ApolloServer, in `src/index.ts`:
+The context is set up as part of the ApolloServer, in `server/src/index.ts`:
 
 ```ts
 import express from "express";
@@ -496,7 +496,7 @@ Refactors:
 
 ### Users and Authentication
 
-Users need their own entity, so in `src/entities/User.ts`:
+Users need their own entity, so in `server/src/entities/User.ts`:
 
 ```ts
 import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
@@ -530,7 +530,7 @@ It is very similar to the `Post` entity, however the property `username` is uniq
 
 Add `User` to the `entities` array in the MikroORM config, and run `migration:create`.
 
-To register a user, in `src/resolvers/user.ts`:
+To register a user, in `server/src/resolvers/user.ts`:
 
 ```ts
 import argon2 from "argon2";
@@ -608,7 +608,7 @@ In the `register` method the `options` arg (which is destructured immediately) i
 
 The `UserResolver` is then added to the resolvers array of the Apollo Server.
 
-To log in as a user, in `src/resolvers/user.ts`:
+To log in as a user, in `server/src/resolvers/user.ts`:
 
 ```ts
   @Mutation(() => UserResponse)
@@ -701,7 +701,7 @@ yarn add -D @types/redis @types/connect-redis @types/express-session
 
 Set up redis following [this article](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-redis).
 
-Now in `src/index.ts`:
+Now in `server/src/index.ts`:
 
 ```ts
 import express from "express";
@@ -761,7 +761,7 @@ main();
 
 A `RedisStore` is created by passing `session` to `connectRedis`, and a `redisClient` is created with `redis.createClient()`. The express `app` uses session, passing a name of "qid", an instance of `RedisStore` passing the client and `disableTouch: true` to reduce the amount of traffic to redis. The cookie is given a max age of 10 years (for now), `httpOnly: true`, and `secure` (https) only when in the production environment. The secret is `SESSION_SECRET` taken from the `.env` file. `resave` is false, as we don't need to manually tell the store to update the session, as redis would do this automatically. `saveUninitialized` is false, because if nothing is added to a new session it does not need to be saved.
 
-The context function gets the req and res from express, and passes those through, which are added to the ApolloContext type in `src/types.ts`:
+The context function gets the req and res from express, and passes those through, which are added to the ApolloContext type in `server/src/types.ts`:
 
 ```ts
 import { EntityManager, IDatabaseDriver, Connection } from "@mikro-orm/core";
