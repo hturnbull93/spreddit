@@ -864,3 +864,21 @@ Running dev server now automatically adds `client/tsconfig.json` and `client/nex
 ### Snippets
 
 To make working in React easier, set up VSCode snippets in `typescriptreact.json` following [this guide](https://www.freecodecamp.org/news/definitive-guide-to-snippets-visual-studio-code/).
+
+### Register Page
+
+In `client/src/pages/register.tsx`:
+
+```tsx
+import React from "react";
+
+interface RegisterProps {}
+
+const Register: React.FC<RegisterProps> = ({}) => {
+  return <div>register page</div>;
+};
+
+export default Register;
+```
+
+As this file is under the `pages` directory, Next.js will create a route based on the filename and render this component. This works on sub-directories too. 
