@@ -16,6 +16,22 @@ This project is to practice and gain more understanding of best practices when u
 
 Following [this tutorial](https://www.youtube.com/watch?v=I6ypD7qv3Z8&ab_channel=BenAwad).
 
+## Quick Start
+
+```shell
+# start postgresql service
+sudo service postgresql start
+
+# start redis service
+sudo service redis-server start
+
+# start dev compiler
+cd server && yarn watch
+
+# start dev server
+cd server && yarn start
+```
+
 ## Development Journal
 
 ### Setting up TypeScript with Node
