@@ -916,3 +916,48 @@ export default Wrapper;
 ```
 
 `Wrapper` is a component that takes `WrapperProps`, which has an optional type that is a union of `"small"` or `"regular"`. It returns the Chakra UI layout element `Box` with some styling props (influenced by the `variant` prop) wrapping the children.
+
+In `client/src/components/InputField.tsx`:
+
+```tsx
+import React, { InputHTMLAttributes } from "react";
+import { useField } from "formik";
+import {
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
+} from "@chakra-ui/form-control";
+import { Input } from "@chakra-ui/input";
+
+type InputFieldProps = InputHTMLAttributes<HTMLInputElement> & {
+  label: string;
+  name: string;
+};
+
+const InputField: React.FC<InputFieldProps> = ({
+  label,
+  size: _size,
+  ...props
+}) => {
+  const [field, { error }] = useField(props);
+  return (
+    <FormControl isInvalid={!!error}>
+      <FormLabel htmlFor={field.name}>{label}</FormLabel>
+      <Input {...field} {...props} id={field.name} />
+      {error && <FormErrorMessage>{error}</FormErrorMessage>}
+    </FormControl>
+  );
+};
+
+export default InputField;
+```
+
+Here, `InputField` is a component that takes props typed by `InputFieldProps`. `InputFieldProps` is an extension of `InputHTMLAttributes<HTMLInputElement>` as that is what the [`useField` custom React hook from Formik](https://formik.org/docs/api/useField) expects, allowing `props` to be passed straight to it.
+
+`useField` provides a `FieldInputProps` object containing everything needed for the `Input`, and a second object with `error`
+
+*It seems that `useField` would actually prefer to use the type `FieldHookConfig<string>`, which works with Formik's `Field` component, but `Input` from Chakra doesn't like this type when `FieldInputProps` is spread into it*.
+
+`label` and `size` are destructured off `props` as they shouldn't be passed to `Input`.
+
+The second object from `useField` is the `FieldMetaProps`, from which `error` is destructured and used to render the `FormErrorMessage` and validate the field when cast to a Boolean.
