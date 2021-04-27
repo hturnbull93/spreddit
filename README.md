@@ -858,3 +858,5 @@ After these changes, running `yarn dev` prompts to install TypeScript with:
 ```shell
 yarn add --dev typescript
 ```
+
+Running dev server now automatically adds `client/tsconfig.json` and `client/next-env.d.ts`.
