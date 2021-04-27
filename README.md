@@ -844,3 +844,5 @@ yarn create next-app --example with-chakra-ui client
 Clear boilerplate from `client/src/pages/index.js` and convert to `.tsx`.
 
 Convert `client/src/pages/_app.js` and `client/src/theme.ts` to `.tsx`.
+
+Clear the components directory of prebuilt components.
