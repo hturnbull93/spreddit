@@ -841,8 +841,20 @@ Initialise the client directory with:
 yarn create next-app --example with-chakra-ui client
 ```
 
+Dev server can be run with:
+
+```shell
+yarn dev
+```
+
 Clear boilerplate from `client/src/pages/index.js` and convert to `.tsx`.
 
 Convert `client/src/pages/_app.js` and `client/src/theme.ts` to `.tsx`.
 
 Clear the components directory of prebuilt components.
+
+After these changes, running `yarn dev` prompts to install TypeScript with:
+
+```shell
+yarn add --dev typescript
+```
