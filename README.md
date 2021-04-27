@@ -832,3 +832,11 @@ Adding a `me` query to `UserResolver`:
 Here, the query gets the `userId` off the session, if it does not exist, return null. Otherwise it will find the user with that id and return that. This could be null if the user doesn't exist by that id, in the case that the user potentially was deleted while the cookie was still active. This query is useful to periodically check if the user still exists and who they are.
 
 Behind the scenes, when `session.userId` is set, the `express-session` middleware will take that and update that session in redis, and also sends instructions to store a signed cookie back to the browser.
+
+### Install Next.js with Chakra UI
+
+Initialise the client directory with:
+
+```shell
+yarn create next-app --example with-chakra-ui client
+```
