@@ -888,3 +888,31 @@ Install formik with:
 ```shell
 yarn add formik
 ```
+
+In `client/src/components/Wrapper.tsx`:
+
+```tsx
+import { Box } from "@chakra-ui/layout";
+import React from "react";
+
+interface WrapperProps {
+  variant?: "small" | "regular";
+}
+
+const Wrapper: React.FC<WrapperProps> = ({ children, variant = "regular" }) => {
+  return (
+    <Box
+      mt={8}
+      mx="auto"
+      maxW={variant === "regular" ? "800px" : "400px"}
+      w="100%"
+    >
+      {children}
+    </Box>
+  );
+};
+
+export default Wrapper;
+```
+
+`Wrapper` is a component that takes `WrapperProps`, which has an optional type that is a union of `"small"` or `"regular"`. It returns the Chakra UI layout element `Box` with some styling props (influenced by the `variant` prop) wrapping the children.
