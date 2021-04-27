@@ -860,3 +860,7 @@ yarn add --dev typescript
 ```
 
 Running dev server now automatically adds `client/tsconfig.json` and `client/next-env.d.ts`.
+
+### Snippets
+
+To make working in React easier, set up VSCode snippets in `typescriptreact.json` following [this guide](https://www.freecodecamp.org/news/definitive-guide-to-snippets-visual-studio-code/).
