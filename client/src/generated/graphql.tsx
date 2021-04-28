@@ -93,8 +93,7 @@ export type UsernamePasswordInput = {
 };
 
 export type LoginMutationVariables = Exact<{
-  username: Scalars["String"];
-  password: Scalars["String"];
+  options: UsernamePasswordInput;
 }>;
 
 export type LoginMutation = { __typename?: "Mutation" } & {
@@ -125,8 +124,8 @@ export type RegisterMutation = { __typename?: "Mutation" } & {
 };
 
 export const LoginDocument = gql`
-  mutation Login($username: String!, $password: String!) {
-    login(options: { username: $username, password: $password }) {
+  mutation Login($options: UsernamePasswordInput!) {
+    login(options: $options) {
       errors {
         field
         message

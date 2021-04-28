@@ -1409,11 +1409,11 @@ Otherwise, if there is a user push to the homepage using Next.js's `useRouter` h
 
 The login page will be very similar to the register page
 
-In `client/src/graphql/mutations/login.graphql`, a very similar mutation for logging in:
+In `client/src/graphql/mutations/login.graphql`, a very similar mutation for logging in, except that instead of specifying both a `$username` and `$password` as `String!`, the variable is the entire `$options` object as a `UsernamePasswordInput!`:
 
 ```graphql
-mutation Login($username: String!, $password: String!) {
-  login(options: { username: $username, password: $password }) {
+mutation Login($options: UsernamePasswordInput!) {
+  login(options: $options) {
     errors {
       field
       message
@@ -1425,3 +1425,5 @@ mutation Login($username: String!, $password: String!) {
   }
 }
 ```
+
+And run `yarn gen` to generate types and mutation hooks.
