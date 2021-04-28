@@ -6,10 +6,11 @@ import { buildSchema } from "type-graphql";
 import redis from "redis";
 import session from "express-session";
 import connectRedis from "connect-redis";
+import cors from "cors";
 
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
-import { SESSION_SECRET, __prod__ } from "./constants";
+import { CORS_ORIGIN, SESSION_SECRET, __prod__ } from "./constants";
 import { ApolloContext } from "./types";
 
 const main = async () => {
@@ -17,6 +18,13 @@ const main = async () => {
   await orm.getMigrator().up();
 
   const app = express();
+
+  app.use(
+    cors({
+      origin: CORS_ORIGIN,
+      credentials: true,
+    }),
+  );
 
   const RedisStore = connectRedis(session);
   const redisClient = redis.createClient();
@@ -43,7 +51,7 @@ const main = async () => {
     }),
     context: ({ req, res }): ApolloContext => ({ em: orm.em, req, res }),
   });
-  apolloServer.applyMiddleware({ app });
+  apolloServer.applyMiddleware({ app, cors: false });
 
   const PORT = 4000;
   app.listen(PORT, () => {

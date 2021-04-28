@@ -1078,3 +1078,22 @@ And the types with
 ```shell
 yarn add -D @types/cors
 ```
+
+Then in `server/src/index.ts` apply cors as a middleware to the express app, passing an origin (set in the `.env` as `http://localhost:3000`), and credentials as true to allow the cookie. Also, set cors on the `apolloServer.applyMiddleware` to false, as it is already applied on express.
+
+```ts
+  import cors from "cors";
+
+  ...
+
+  app.use(
+    cors({
+      origin: CORS_ORIGIN,
+      credentials: true,
+    }),
+  );
+
+  ...
+
+  apolloServer.applyMiddleware({ app, cors: false });
+```
