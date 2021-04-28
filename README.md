@@ -1072,3 +1072,9 @@ Install cors for the server with:
 ```shell
 yarn add cors
 ```
+
+And the types with
+
+```shell
+yarn add -D @types/cors
+```
