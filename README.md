@@ -1300,3 +1300,8 @@ export default Register;
 ```
 
 Instead of specifying the mutation and passing it to `useMutation`, `useRegisterMutation` is used, meaning the response resolved from the promise returned from `register` is now typed with what that mutation may return (potentially a user, and potentially an array of errors).
+
+Now the workflow is:
+- Add in a mutation/query to `client/src/graphql`
+- Run `yarn gen`
+- Use that custom generated hook in the component
