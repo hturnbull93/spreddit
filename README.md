@@ -961,3 +961,57 @@ Here, `InputField` is a component that takes props typed by `InputFieldProps`. `
 `label` and `size` are destructured off `props` as they shouldn't be passed to `Input`.
 
 The second object from `useField` is the `FieldMetaProps`, from which `error` is destructured and used to render the `FormErrorMessage` and validate the field when cast to a Boolean.
+
+Back in `client/src/pages/register.tsx`:
+
+```tsx
+import React from "react";
+import { Form, Formik } from "formik";
+import Wrapper from "../components/Wrapper";
+import InputField from "../components/InputField";
+import { Box } from "@chakra-ui/layout";
+import { Button } from "@chakra-ui/react";
+
+interface RegisterProps {}
+
+const Register: React.FC<RegisterProps> = ({}) => {
+  return (
+    <Wrapper variant="small">
+      <Formik
+        initialValues={{ username: "", password: "" }}
+        onSubmit={console.log}
+      >
+        {({ isSubmitting }) => (
+          <Form>
+            <InputField
+              name="username"
+              placeholder="username"
+              label="Username"
+            />
+            <Box mt={4}>
+              <InputField
+                name="password"
+                placeholder="password"
+                label="Password"
+                type="password"
+              />
+            </Box>
+            <Button
+              mt={4}
+              isLoading={isSubmitting}
+              type="submit"
+              colorScheme="teal"
+            >
+              Register
+            </Button>
+          </Form>
+        )}
+      </Formik>
+    </Wrapper>
+  );
+};
+
+export default Register;
+```
+
+The `Register` component renders a small `Wrapper` containing a `Formik` form, with `InputField`s for username and password. It also renders a `Button` whose `isLoading` prop is passed the `isSubmitting` property from the [Formik](https://formik.org/docs/api/formik) render child props function ([read more](https://reactjs.org/docs/render-props.html)).
