@@ -1015,3 +1015,11 @@ export default Register;
 ```
 
 The `Register` component renders a small `Wrapper` containing a `Formik` form, with `InputField`s for username and password. It also renders a `Button` whose `isLoading` prop is passed the `isSubmitting` property from the [Formik](https://formik.org/docs/api/formik) render child props function ([read more](https://reactjs.org/docs/render-props.html)).
+
+### GraphQL Client
+
+Install URQL and GrqphQL with:
+
+```shell
+yarn add urql graphql
+```
