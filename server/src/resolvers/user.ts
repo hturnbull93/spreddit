@@ -59,13 +59,13 @@ export class UserResolver {
     if (username.length < 2) {
       errors.push({
         field: "username",
-        message: "length muse be at least 2 characters",
+        message: "length must be at least 2 characters",
       });
     }
     if (password.length < 2) {
       errors.push({
         field: "password",
-        message: "length muse be at least 2 characters",
+        message: "length must be at least 2 characters",
       });
     }
     if (errors.length) {
