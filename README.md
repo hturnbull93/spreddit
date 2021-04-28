@@ -30,6 +30,9 @@ cd server && yarn watch
 
 # start dev server
 cd server && yarn start
+
+# start dev client
+cd client && yarn dev
 ```
 
 ## Development Journal
