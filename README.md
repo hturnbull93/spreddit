@@ -1097,3 +1097,81 @@ Then in `server/src/index.ts` apply cors as a middleware to the express app, pas
 
   apolloServer.applyMiddleware({ app, cors: false });
 ```
+
+Now in `client/src/pages/register.tsx`:
+
+```tsx
+import React from "react";
+import { Form, Formik } from "formik";
+import Wrapper from "../components/Wrapper";
+import InputField from "../components/InputField";
+import { Box } from "@chakra-ui/layout";
+import { Button } from "@chakra-ui/react";
+import { useMutation } from "urql";
+
+interface RegisterProps {}
+
+const REGISTER_MUTATION = `
+  mutation Register($username: String!, $password: String!) {
+    register(options: { username: $username, password: $password }) {
+      errors {
+        field
+        message
+      }
+      user {
+        id
+        createdAt
+        updatedAt
+        username
+      }
+    }
+  }
+`;
+
+const Register: React.FC<RegisterProps> = ({}) => {
+  const [_dataObject, register] = useMutation(REGISTER_MUTATION);
+  return (
+    <Wrapper variant="small">
+      <Formik
+        initialValues={{ username: "", password: "" }}
+        onSubmit={(values) => {
+          console.log(`mutating with: `, values);
+          return register(values);
+        }}
+      >
+        {({ isSubmitting }) => (
+          <Form>
+            <InputField
+              name="username"
+              placeholder="username"
+              label="Username"
+            />
+            <Box mt={4}>
+              <InputField
+                name="password"
+                placeholder="password"
+                label="Password"
+                type="password"
+              />
+            </Box>
+            <Button
+              mt={4}
+              isLoading={isSubmitting}
+              type="submit"
+              colorScheme="teal"
+            >
+              Register
+            </Button>
+          </Form>
+        )}
+      </Formik>
+    </Wrapper>
+  );
+};
+
+export default Register;
+```
+
+`REGISTER_MUTATION` is a string template for the register mutation, which has some variables `$username` and `$password` that are required to be non null strings by `String!`.
+
+This is passed to URQL's `useMutation` hook, which return an object of data and a function to call the mutation `register` which is called in the `onSubmit` handler. `register` returns a promise, which when returned to `onSubmit` will resolve `isSubmitting` to false, stopping the loading spinner on the button.
