@@ -1225,3 +1225,15 @@ mutation Register($username: String!, $password: String!) {
   }
 }
 ```
+
+And run `yarn gen` to generate types in `client/src/generated/graphql.tsx`.
+
+There are types for the entire schema on the exposed on the backend, and custom typed URQL hooks, passing the generated types to the `useMutation` generics:
+
+```ts
+export function useRegisterMutation() {
+  return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(
+    RegisterDocument,
+  );
+}
+```
