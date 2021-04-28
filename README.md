@@ -1208,3 +1208,20 @@ yarn add -D @graphql-codegen/typescript-urql
 ```
 
 And in `codegen.yml` manually add the plugin `typescript-urql`.
+
+Then in `client/src/graphql/mutations/register.graphql`:
+
+```graphql
+mutation Register($username: String!, $password: String!) {
+  register(options: { username: $username, password: $password }) {
+    errors {
+      field
+      message
+    }
+    user {
+      id
+      username
+    }
+  }
+}
+```
