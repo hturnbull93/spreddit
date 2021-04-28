@@ -1181,3 +1181,22 @@ To be able to generate a type from the query to be able to type the return of th
 ```shelll
 yarn add -D @graphql-codegen/cli
 ```
+
+Then run the initialiser wizard with:
+
+```shell
+yarn graphql-codegen init
+```
+
+Selecting the following options:
+
+```shell
+? What type of application are you building? Application built with React
+? Where is your schema?: (path or url) http://localhost:4000/graphql
+? Where are your operations and fragments?: src/graphql/**/*.graphql
+? Pick plugins: TypeScript (required by other typescript plugins), TypeScript Operations (operations and fragments)
+? Where to write the output: src/generated/graphql.tsx
+? Do you want to generate an introspection file? No
+? How to name the config file? codegen.yml
+? What script in package.json should run the codegen? gen
+```
