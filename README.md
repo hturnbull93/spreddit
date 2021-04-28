@@ -1404,3 +1404,24 @@ export default Register;
 If there were errors (using optional chaining to early return undefined if `data` does not exist) `setErrors` from the Formik helpers object can be called with the result of `toErrorMap` passing the errors.
 
 Otherwise, if there is a user push to the homepage using Next.js's `useRouter` hook.
+
+### Login Page
+
+The login page will be very similar to the register page
+
+In `client/src/graphql/mutations/login.graphql`, a very similar mutation for logging in:
+
+```graphql
+mutation Login($username: String!, $password: String!) {
+  login(options: { username: $username, password: $password }) {
+    errors {
+      field
+      message
+    }
+    user {
+      id
+      username
+    }
+  }
+}
+```
