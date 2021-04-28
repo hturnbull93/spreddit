@@ -80,7 +80,7 @@ export class UserResolver {
     try {
       await em.persistAndFlush(user);
     } catch (error) {
-      if (error.code === "23505") {
+      if (error.detail.includes("already exists")) {
         return {
           errors: [
             { field: "username", message: "that username is already in use" },

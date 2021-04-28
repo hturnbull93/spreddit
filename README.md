@@ -641,7 +641,7 @@ Here the login mutation has the `UsernamePasswordInput` for its options arg as w
 
 *Generally exposing information about the existence of a user is bad practice, for example if login failed because there was no user for that username, or because the username existed but the password is wrong. I will keep it as it is for now as I don't know if it would cause me to deviate greatly from the tutorial later on.*
 
-To add some validation to user registration, if either the username or password is less that 2 characters in length return a `UserResponse` with a relevant `FieldError`. Also, handle an error more specifically by the code when attempting to persist the user with a potentially duplicate username:
+To add some validation to user registration, if either the username or password is less that 2 characters in length return a `UserResponse` with a relevant `FieldError`. Also, handle an error more specifically by the error detail when attempting to persist the user with a potentially duplicate username:
 
 ```ts
   @Mutation(() => UserResponse)
@@ -674,7 +674,7 @@ To add some validation to user registration, if either the username or password 
     try {
       await em.persistAndFlush(user);
     } catch (error) {
-      if (error.code === "23505") {
+      if (error.detail.includes("already exists")) {
         return {
           errors: [
             { field: "username", message: "that username is already in use" },
