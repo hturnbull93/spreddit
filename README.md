@@ -1062,3 +1062,13 @@ function MyApp({ Component, pageProps }) {
 
 export default MyApp;
 ```
+
+The config object for the client is hardcoded with the url of the graphql backend for now, and `credentials: "include"` is added to be able to send cookies for authentication.
+
+However, this will result in a Cross-Origin Resource Sharing (CORS) error if the server is not expecting it.
+
+Install cors for the server with:
+
+```shell
+yarn add cors
+```
