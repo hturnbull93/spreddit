@@ -1175,3 +1175,9 @@ export default Register;
 `REGISTER_MUTATION` is a string template for the register mutation, which has some variables `$username` and `$password` that are required to be non null strings by `String!`.
 
 This is passed to URQL's `useMutation` hook, which return an object of data and a function to call the mutation `register` which is called in the `onSubmit` handler. `register` returns a promise, which when returned to `onSubmit` will resolve `isSubmitting` to false, stopping the loading spinner on the button.
+
+To be able to generate a type from the query to be able to type the return of the hook, install the GrqphQL Code Generator cli with:
+
+```shelll
+yarn add -D @graphql-codegen/cli
+```
