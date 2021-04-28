@@ -1311,3 +1311,27 @@ Now the workflow is:
 - Add in a mutation/query to `client/src/graphql`
 - Run `yarn gen`
 - Use that custom generated hook in the component
+
+### Render Register Errors
+
+The errors that come back from the register mutation are an array of `FieldError`s, and need to be converted to an object map to be displayed by `Formik`.
+
+In `client/src/utils/toErrorMap.ts`:
+
+```ts
+import { FieldError } from "../generated/graphql";
+
+export const toErrorMap = (errors: FieldError[]) => {
+  const errorMap: Record<string, string> = {};
+  errors.forEach(({ field, message }) => {
+    if (!errorMap[field]) {
+      errorMap[field] = message;
+    } else {
+      errorMap[field].concat(` | ${message}`);
+    }
+  });
+  return errorMap;
+};
+```
+
+`toErrorMap` is a utility function that takes an array of `FieldError`s. `errorMap` is an object with the type `Record<string, string>` meaning it has keys that are strings which have values that are strings. `errors` is iterated through, and fields on the `errorMap` are either added, or concatenated onto, with a pipe spacer.
