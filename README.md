@@ -1200,3 +1200,11 @@ Selecting the following options:
 ? How to name the config file? codegen.yml
 ? What script in package.json should run the codegen? gen
 ```
+
+Then install the `typescript-urql` plugin with:
+
+```shell
+yarn add -D @graphql-codegen/typescript-urql
+```
+
+And in `codegen.yml` manually add the plugin `typescript-urql`.
