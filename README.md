@@ -1312,7 +1312,7 @@ Now the workflow is:
 - Run `yarn gen`
 - Use that custom generated hook in the component
 
-### Render Register Errors
+### Render Register Errors and Handle Success
 
 The errors that come back from the register mutation are an array of `FieldError`s, and need to be converted to an object map to be displayed by `Formik`.
 
@@ -1335,3 +1335,72 @@ export const toErrorMap = (errors: FieldError[]) => {
 ```
 
 `toErrorMap` is a utility function that takes an array of `FieldError`s. `errorMap` is an object with the type `Record<string, string>` meaning it has keys that are strings which have values that are strings. `errors` is iterated through, and fields on the `errorMap` are either added, or concatenated onto, with a pipe spacer.
+
+Now in the `Register` component:
+
+```tsx
+import React from "react";
+import { Form, Formik } from "formik";
+import { useRouter } from "next/router";
+import { Box } from "@chakra-ui/layout";
+import { Button } from "@chakra-ui/react";
+import Wrapper from "../components/Wrapper";
+import InputField from "../components/InputField";
+import { useRegisterMutation } from "../generated/graphql";
+import { toErrorMap } from "../utils/toErrorMap";
+
+interface RegisterProps {}
+
+const Register: React.FC<RegisterProps> = ({}) => {
+  const router = useRouter();
+  const [_data, register] = useRegisterMutation();
+  return (
+    <Wrapper variant="small">
+      <Formik
+        initialValues={{ username: "", password: "" }}
+        onSubmit={async (values, { setErrors }) => {
+          const response = await register(values);
+          if (response.data?.register.errors) {
+            setErrors(toErrorMap(response.data.register.errors));
+          } else if (response.data?.register.user) {
+            router.push("/");
+          }
+          return response;
+        }}
+      >
+        {({ isSubmitting }) => (
+          <Form>
+            <InputField
+              name="username"
+              placeholder="username"
+              label="Username"
+            />
+            <Box mt={4}>
+              <InputField
+                name="password"
+                placeholder="password"
+                label="Password"
+                type="password"
+              />
+            </Box>
+            <Button
+              mt={4}
+              isLoading={isSubmitting}
+              type="submit"
+              colorScheme="teal"
+            >
+              Register
+            </Button>
+          </Form>
+        )}
+      </Formik>
+    </Wrapper>
+  );
+};
+
+export default Register;
+```
+
+If there were errors (using optional chaining to early return undefined if `data` does not exist) `setErrors` from the Formik helpers object can be called with the result of `toErrorMap` passing the errors.
+
+Otherwise, if there is a user push to the homepage using Next.js's `useRouter` hook.
