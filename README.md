@@ -1777,3 +1777,22 @@ export default NavBar;
 ```
 
 The `useLogoutMutation` custom mutation hook is used, and is passed to the log out button's `onClick`. The log out button's `isLoading` is passed `logoutFetching`, renamed from the data object to avoid name clash.
+
+Now the cache is updated when the `Logout` mutation returns, in `client/src/pages/_app.tsx`:
+
+```ts
+         ...
+
+          logout: (result, _args, cache, _info) => {
+            typedUpdateQuery<LogoutMutation, MeQuery>(
+              cache,
+              { query: MeDocument },
+              result,
+              () => ({ me: null }),
+            );
+          },
+
+         ...
+```
+
+This simply sets the `me` document in the cache to null.
