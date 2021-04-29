@@ -6,3 +6,4 @@ export const DB_USER = process.env.DB_USER;
 export const DB_PASS = process.env.DB_PASS;
 export const SESSION_SECRET = process.env.SESSION_SECRET || "secret";
 export const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:3000";
+export const COOKIE_NAME = "qid";

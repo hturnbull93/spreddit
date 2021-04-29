@@ -10,7 +10,7 @@ import cors from "cors";
 
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
-import { CORS_ORIGIN, SESSION_SECRET, __prod__ } from "./constants";
+import { COOKIE_NAME, CORS_ORIGIN, SESSION_SECRET, __prod__ } from "./constants";
 import { ApolloContext } from "./types";
 
 const main = async () => {
@@ -30,7 +30,7 @@ const main = async () => {
   const redisClient = redis.createClient();
   app.use(
     session({
-      name: "qid",
+      name: COOKIE_NAME,
       store: new RedisStore({ client: redisClient, disableTouch: true }),
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
