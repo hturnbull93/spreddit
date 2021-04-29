@@ -1547,3 +1547,5 @@ export default NavBar;
 ```
 
 The `NavBar` uses the custom query hook `useMeQuery` generated from the `me` GraphQL query, and conditionally renders log in and register links if not logged in, or a logout button if logged in. `NextLink` from `next/link` is used to create links to the other pages.
+
+The `NavBar` is rendered in the `Index` component.
