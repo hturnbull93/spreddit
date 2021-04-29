@@ -1494,3 +1494,56 @@ export default Login;
 ```
 
 The `Login` component is very similar to `Register`, however as it uses the slightly different `options` variable for the mutation, `values` needs to be remapped when calling the `login` mutation.
+
+### NavBar
+
+In `client/src/components/NavBar.tsx`:
+
+```tsx
+import React from "react";
+import { Box, Flex, Link } from "@chakra-ui/layout";
+import NextLink from "next/link";
+import { useMeQuery } from "../generated/graphql";
+import { Button } from "@chakra-ui/button";
+
+interface NavBarProps {}
+
+const NavBar: React.FC<NavBarProps> = ({}) => {
+  const [{ data, fetching }] = useMeQuery();
+
+  let body;
+  if (fetching) {
+    body = null;
+  } else if (!data?.me) {
+    body = (
+      <>
+        <NextLink href="/login">
+          <Link color="white" mr={2}>
+            Log in
+          </Link>
+        </NextLink>
+        <NextLink href="/register">
+          <Link color="white">Register</Link>
+        </NextLink>
+      </>
+    );
+  } else {
+    body = (
+      <>
+        <Box mr={2}>{data.me.username}</Box>
+        <Button variant="link">Log out</Button>
+      </>
+    );
+  }
+
+  return (
+    <Flex bg="teal" p={4}>
+      <Flex ml="auto">{body}</Flex>
+    </Flex>
+  );
+};
+
+export default NavBar;
+```
+
+The `NavBar` uses the custom query hook `useMeQuery` generated from the `me` GraphQL query, and conditionally renders log in and register links if not logged in, or a logout button if logged in. `NextLink` from `next/link` is used to create links to the other pages.
