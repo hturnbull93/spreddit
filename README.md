@@ -1719,3 +1719,61 @@ mutation Logout {
 ```
 
 And `yarn gen` to generate types.
+
+In `client/src/components/NavBar.tsx`:
+
+```tsx
+import React from "react";
+import { Box, Flex, Link } from "@chakra-ui/layout";
+import NextLink from "next/link";
+import { useLogoutMutation, useMeQuery } from "../generated/graphql";
+import { Button } from "@chakra-ui/button";
+
+interface NavBarProps {}
+
+const NavBar: React.FC<NavBarProps> = ({}) => {
+  const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
+  const [{ data, fetching }] = useMeQuery();
+
+  let body;
+  if (fetching) {
+    body = null;
+  } else if (!data?.me) {
+    body = (
+      <>
+        <NextLink href="/login">
+          <Link color="white" mr={2}>
+            Log in
+          </Link>
+        </NextLink>
+        <NextLink href="/register">
+          <Link color="white">Register</Link>
+        </NextLink>
+      </>
+    );
+  } else {
+    body = (
+      <>
+        <Box mr={2}>{data.me.username}</Box>
+        <Button
+          variant="link"
+          onClick={() => logout()}
+          isLoading={logoutFetching}
+        >
+          Log out
+        </Button>
+      </>
+    );
+  }
+
+  return (
+    <Flex bg="teal" p={4}>
+      <Flex ml="auto">{body}</Flex>
+    </Flex>
+  );
+};
+
+export default NavBar;
+```
+
+The `useLogoutMutation` custom mutation hook is used, and is passed to the log out button's `onClick`. The log out button's `isLoading` is passed `logoutFetching`, renamed from the data object to avoid name clash.
