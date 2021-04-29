@@ -1661,3 +1661,29 @@ Mutations and subscriptions use [updaters](https://formidable.com/open-source/ur
 
 For example the `login` updater uses the types `LoginMutation` for `Result` and `MeQuery` for the `Query` and passes through the cache, qi object with the `MeDocument`, the result, and the callback function. In the callback function if the result (`r`) has errors, return the current data in the cache (`q`), otherwise return data with the user from the login mutation to update the `MeDocument` in the cache.
 
+### Refactoring a User Fragment
+
+In `client/src/graphql/fragments/RegularUser.graphql` add a fragment:
+
+```graphql
+fragment RegularUser on User {
+  id
+  username
+}
+```
+
+Which can be used to DRY up the GraphQL documents where this is used, for example in `client/src/graphql/mutations/login.graphql`:
+
+```graphql
+mutation Login($options: UsernamePasswordInput!) {
+  login(options: $options) {
+    errors {
+      field
+      message
+    }
+    user {
+      ...RegularUser
+    }
+  }
+}
+```
