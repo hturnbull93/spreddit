@@ -1796,3 +1796,11 @@ Now the cache is updated when the `Logout` mutation returns, in `client/src/page
 ```
 
 This simply sets the `me` document in the cache to null.
+
+### Server Side Rendering
+
+Install the dependencies with:
+
+```shell
+yarn add next-urql react-is isomorphic-unfetch
+```
