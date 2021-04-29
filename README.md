@@ -1709,3 +1709,13 @@ In `server/src/resolvers/user.ts`:
 ```
 
 The `logout` resolver is a mutation returning a boolean. It brings the request and response from the context and returns a promise whose executor callback calls `req.session.destroy` to attempt to clear the session from Redis. the callback from `destroy` may have an error, and resolves false then returns, if there is no error resolve true. In either case, `res.clearCookie` is called with `COOKIE_NAME` (which is `qid`, extracted to constants) which instructs the browser to delete its `qid` cookie.
+
+In `client/src/graphql/mutations/logout.graphql`:
+
+```graphql
+mutation Logout {
+  logout
+}
+```
+
+And `yarn gen` to generate types.
