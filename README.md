@@ -1557,3 +1557,107 @@ Install Graphcache with:
 ```shell
 yarn add @urql/exchange-graphcache
 ```
+
+In `client/src/pages/_app.tsx`:
+
+```tsx
+import { ChakraProvider, ColorModeProvider } from "@chakra-ui/react";
+import { cacheExchange, Cache, QueryInput } from "@urql/exchange-graphcache";
+import { Provider, createClient, dedupExchange, fetchExchange } from "urql";
+import {
+  LoginMutation,
+  MeDocument,
+  MeQuery,
+  RegisterMutation,
+} from "../generated/graphql";
+import theme from "../theme";
+
+function typedUpdateQuery<Result, Query>(
+  cache: Cache,
+  qi: QueryInput,
+  result: any,
+  fn: (r: Result, q: Query) => Query,
+) {
+  return cache.updateQuery(qi, (data) => fn(result, data as any) as any);
+}
+
+const client = createClient({
+  url: "http://localhost:4000/graphql",
+  fetchOptions: {
+    credentials: "include",
+  },
+  exchanges: [
+    dedupExchange,
+    cacheExchange({
+      updates: {
+        Mutation: {
+          login: (result, _args, cache, _info) => {
+            typedUpdateQuery<LoginMutation, MeQuery>(
+              cache,
+              { query: MeDocument },
+              result,
+              (r, q) => {
+                if (r.login.errors) {
+                  return q;
+                } else {
+                  return {
+                    me: r.login.user,
+                  };
+                }
+              },
+            );
+          },
+          register: (result, _args, cache, _info) => {
+            typedUpdateQuery<RegisterMutation, MeQuery>(
+              cache,
+              { query: MeDocument },
+              result,
+              (r, q) => {
+                if (r.register.errors) {
+                  return q;
+                } else {
+                  return {
+                    me: r.register.user,
+                  };
+                }
+              },
+            );
+          },
+        },
+      },
+    }),
+    fetchExchange,
+  ],
+});
+
+function MyApp({ Component, pageProps }: any) {
+  return (
+    <Provider value={client}>
+      <ChakraProvider resetCSS theme={theme}>
+        <ColorModeProvider
+          options={{
+            useSystemColorMode: true,
+          }}
+        >
+          <Component {...pageProps} />
+        </ColorModeProvider>
+      </ChakraProvider>
+    </Provider>
+  );
+}
+
+export default MyApp;
+```
+
+Here, the client takes a array of [exchanges](https://formidable.com/open-source/urql/docs/architecture/#the-exchanges), which are used for resolving GraphQL requests. The `cacheExchange` is the [alternate normalised cache from URQL](https://formidable.com/open-source/urql/docs/graphcache/). This allows full control of how the cache is updated, especially useful in the case where the usual exchange cannot infer what's going on.
+
+Mutations and subscriptions use [updaters](https://formidable.com/open-source/urql/docs/graphcache/cache-updates/) to update links and relations in the cache. The updaters have four parameters: 
+- The `result` which is the response to the request
+-  `args` which is the arguments that the request was made with
+-  The `cache` object, with methods to interact with and update the cache
+-  `info` containing information about the traversal of the query document.
+
+`typedUpdateQuery` is a function that allows the `cache.updateQuery` method to be typed with generics, taking a `Result` which is the returned object from the request, and a `Query` which is the query or mutation document the request was made with. These are used to type the parameters of the function that is passed that updates the query in the cache. the `cache` and `qi` are typed as `Cache` and `QueryInput` from Graphcache. The function then calls `cache.updateQuery` with `qi` as the first argument (the document to update), and then a callback function that passes through `result` (the return of the API call) with `data` (the current state of the cache) to the function we provide.  
+
+For example the `login` updater uses the types `LoginMutation` for `Result` and `MeQuery` for the `Query` and passes through the cache, qi object with the `MeDocument`, the result, and the callback function. In the callback function if the result (`r`) has errors, return the current data in the cache (`q`), otherwise return data with the user from the login mutation to update the `MeDocument` in the cache.
+
