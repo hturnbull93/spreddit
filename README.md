@@ -1976,3 +1976,5 @@ Add the email field, very similar to the username field, to the User entity in `
 
    ...
 ```
+
+Then run create the migration with `yarn migration:create`.
