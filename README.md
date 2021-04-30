@@ -1822,7 +1822,7 @@ import { typedUpdateQuery } from "./typedUpdateQuery";
 export const createUrqlClient = (ssrExchange: any) => ({
   url: "http://localhost:4000/graphql",
   fetchOptions: {
-    credentials: "include",
+    credentials: "include" as const,
   },
   exchanges: [
     dedupExchange,
@@ -1878,6 +1878,6 @@ export const createUrqlClient = (ssrExchange: any) => ({
 });
 ```
 
-The only thing that has changed is that the function `createUrqlClient` takes an `ssrExchange` for server side rendering, that is added to the exchanges array.
+The only thing that has changed is that the function `createUrqlClient` takes an `ssrExchange` for server side rendering, that is added to the exchanges array. Also `credentials: "include"` is cast to const, so it is a concrete type rather than the `string` type.
 
 `typedUpdateQuery` is also extracted to its own utility file.
