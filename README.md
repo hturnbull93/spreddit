@@ -1956,3 +1956,9 @@ Install Nodemailer on the server with:
 ```shell
 yarn add nodemailer
 ```
+
+And install types with:
+
+```shell
+yarn add -D @types/nodemailer
+```
