@@ -1925,3 +1925,26 @@ export default withUrqlClient(createUrqlClient)(Login);
 ```
 
 These components don't fetch anything that would benefit from server side rendering, so they don't use it.
+
+### Skipping Queries on SSR
+
+The `me` query on `NavBar` will always return `null` when server side rendered, because the Next.js server doesn't use cookies, only the browser does. However Next.js will still make the query, so it can be turned off by checking if we are on the server with the `isServer` util in `client/src/utils/isServer.ts`:
+
+```ts
+export const isServer = () => typeof window === "undefined";
+```
+
+And use that in `NavBar` (or any other place where a GrqphQL request should only run in the browser):
+
+```tsx
+const NavBar: React.FC<NavBarProps> = ({}) => {
+  const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
+  const [{ data, fetching }] = useMeQuery({
+    pause: true,
+  });
+
+   ...
+};
+
+export default NavBar;
+```
