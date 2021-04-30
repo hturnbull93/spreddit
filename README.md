@@ -1907,3 +1907,21 @@ export default withUrqlClient(createUrqlClient, { ssr: true })(Index);
 `withUrqlClient` is a function that injects the `ssrExchange` into `createUrqlCLient` based on the `ssr` in the options object. It returns a higher order component that wraps `Index`.
 
 To have something to server side render, Index uses `usePostsQuery` generated from the Posts query
+
+However, now the entire `MyApp` component isn't wrapped in an URQL provider, each component making a GraphQL request needs to be wrapped in the HOC. For example in `client/src/pages/register.tsx`:
+
+```tsx
+...
+
+export default withUrqlClient(createUrqlClient)(Register);
+```
+
+And similarly in `client/src/pages/register.tsx`:
+
+```tsx
+...
+
+export default withUrqlClient(createUrqlClient)(Login);
+```
+
+These components don't fetch anything that would benefit from server side rendering, so they don't use it.
