@@ -1881,3 +1881,29 @@ export const createUrqlClient = (ssrExchange: any) => ({
 The only thing that has changed is that the function `createUrqlClient` takes an `ssrExchange` for server side rendering, that is added to the exchanges array. Also `credentials: "include"` is cast to const, so it is a concrete type rather than the `string` type.
 
 `typedUpdateQuery` is also extracted to its own utility file.
+
+Now, each page can choose which client is uses, for example in `client/src/pages/index.tsx`:
+
+```tsx
+import { withUrqlClient } from "next-urql";
+import NavBar from "../components/NavBar";
+import { createUrqlClient } from "../utils/createUrqlClient";
+import { usePostsQuery } from "../generated/graphql";
+
+const Index = () => {
+  const [{ fetching, data }] = usePostsQuery();
+  return (
+    <>
+      <NavBar />
+      {fetching && <div>loading...</div>}
+      {data && data.posts.map((p) => <div key={p.id}>{p.title}</div>)}
+    </>
+  );
+};
+
+export default withUrqlClient(createUrqlClient, { ssr: true })(Index);
+```
+
+`withUrqlClient` is a function that injects the `ssrExchange` into `createUrqlCLient` based on the `ssr` in the options object. It returns a higher order component that wraps `Index`.
+
+To have something to server side render, Index uses `usePostsQuery` generated from the Posts query
