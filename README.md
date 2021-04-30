@@ -1948,3 +1948,11 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
 
 export default NavBar;
 ```
+
+### Reset Password
+
+Install Nodemailer on the server with:
+
+```shell
+yarn add nodemailer
+```
