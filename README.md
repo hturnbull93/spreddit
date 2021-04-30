@@ -1962,3 +1962,17 @@ And install types with:
 ```shell
 yarn add -D @types/nodemailer
 ```
+
+Now, in order to reset a password, users need email addresses.
+
+Add the email field, very similar to the username field, to the User entity in `server/src/entities/User.ts`:
+
+```tsx
+  ...
+
+  @Field(() => String)
+  @Property({ type: "text", unique: true })
+  email!: string;
+
+   ...
+```
