@@ -19,11 +19,8 @@ Following [this tutorial](https://www.youtube.com/watch?v=I6ypD7qv3Z8&ab_channel
 ## Quick Start
 
 ```shell
-# start postgresql service
-sudo service postgresql start
-
-# start redis service
-sudo service redis-server start
+# start postgresql and redis services
+sudo service postgresql start && sudo service redis-server start
 
 # start dev compiler
 cd server && yarn watch
