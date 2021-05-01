@@ -9,7 +9,7 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
   return (
     <Wrapper variant="small">
       <Formik
-        initialValues={{ newPassword: "" }}
+        initialValues={{ password: "" }}
         onSubmit={async (values) => {
           console.log("values", values);
           console.log("token", token);
@@ -25,7 +25,7 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
         {({ isSubmitting }) => (
           <Form>
             <InputField
-              name="newPassword"
+              name="password"
               placeholder="new password"
               label="New password"
               type="password"
