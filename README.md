@@ -146,7 +146,7 @@ The class `Post` is decorated with `Entity` from MikroORM, to let it know that t
 
 The `Post` class is added to the `entities` array when initialising MikroOrm.
 
-### Set up MikroORM CLI
+### MikroORM CLI Setup
 
 Add the config in `package.json`:
 
@@ -1946,7 +1946,7 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
 export default NavBar;
 ```
 
-### Reset Password
+### Add Email to User
 
 In order to reset a password, users need email addresses.
 
@@ -2182,7 +2182,9 @@ And in `client/src/pages/register.tsx` an additional field for `email` is added:
 
 ```
 
-Now that users have emails, the reset password mutation can be implemented.
+### Nodemailer Setup
+
+Now that users have emails, there needs to be a way to send emails.
 
 In order to send email install Nodemailer on the server with:
 
