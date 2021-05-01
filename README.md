@@ -2568,3 +2568,69 @@ Finally, the changePassword cache updater is added to the `cacheExchange` in `cl
 ```
 
 It does a very similar update to the login and register updaters.
+
+To request a reset password email, in `client/src/pages/forgot-password.tsx`:
+
+```tsx
+import React, { useState } from "react";
+import { Form, Formik } from "formik";
+import { withUrqlClient } from "next-urql";
+import { Alert, AlertIcon, Button } from "@chakra-ui/react";
+import Wrapper from "../components/Wrapper";
+import InputField from "../components/InputField";
+import { useForgotPasswordMutation } from "../generated/graphql";
+import { createUrqlClient } from "../utils/createUrqlClient";
+
+interface ForgotPasswordProps {}
+
+const ForgotPassword: React.FC<ForgotPasswordProps> = ({}) => {
+  const [_data, forgotPassword] = useForgotPasswordMutation();
+  const [success, setSuccess] = useState(false);
+  return (
+    <Wrapper variant="small">
+      <Formik
+        initialValues={{ email: "" }}
+        onSubmit={async (values) => {
+          const response = await forgotPassword(values);
+          if (response.data?.forgotPassword) {
+            setSuccess(true);
+          }
+          return response;
+        }}
+      >
+        {({ isSubmitting }) =>
+          success ? (
+            <Alert mt={4} mb={4} status="success">
+              <AlertIcon />
+              Password reset email sent!
+            </Alert>
+          ) : (
+            <Form>
+              <InputField
+                name="email"
+                placeholder="email"
+                label="Email"
+                type="email"
+              />
+              <Button
+                mt={4}
+                isLoading={isSubmitting}
+                type="submit"
+                colorScheme="teal"
+              >
+                Reset password
+              </Button>
+            </Form>
+          )
+        }
+      </Formik>
+    </Wrapper>
+  );
+};
+
+export default withUrqlClient(createUrqlClient)(ForgotPassword);
+```
+
+The `ForgotPassword` component is very similar to the previous components, with an email field in the form that when submitted calls the `forgotPassword` mutation. Once the response is back `success` is set to true, and a message is displayed.
+
+*The ForgotPassword mutation could be altered to accept either an email or username, similar to login. Perhaps this will be altered in future.*
