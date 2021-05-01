@@ -11,6 +11,7 @@ import {
   Resolver,
 } from "type-graphql";
 import { COOKIE_NAME } from "../constants";
+import { validateRegister } from "../utils/validateRegister";
 
 @ObjectType()
 class UserResponse {
@@ -34,29 +35,17 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async register(
-    @Arg("options") { username, password }: UsernamePasswordInput,
+    @Arg("options") options: UsernamePasswordInput,
     @Ctx() { em, req }: ApolloContext,
   ): Promise<UserResponse> {
-    const errors = [];
-    if (username.length < 2) {
-      errors.push({
-        field: "username",
-        message: "length must be at least 2 characters",
-      });
-    }
-    if (password.length < 2) {
-      errors.push({
-        field: "password",
-        message: "length must be at least 2 characters",
-      });
-    }
-    if (errors.length) {
-      return { errors };
-    }
+    const errors = validateRegister(options);
+    if (errors) return { errors };
 
+    const { username, email, password } = options;
     const passwordDigest = await argon2.hash(password);
     const user = em.create(User, {
       username,
+      email,
       password: passwordDigest,
     });
     try {

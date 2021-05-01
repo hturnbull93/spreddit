@@ -2038,3 +2038,41 @@ export const validateRegister = ({
 ```
 
 `validateRegister` takes options in the shape of `UsernamePasswordInput` and returns either an array of `FieldError`s or `null`. Email is validated using the `isEmail` function from `validator` (installed with `yarn add validator`). Also added is a check that the username cannot contain `@`.
+
+Update the `UserResolver` `register` mutation:
+
+```tsx
+  @Mutation(() => UserResponse)
+  async register(
+    @Arg("options") options: UsernamePasswordInput,
+    @Ctx() { em, req }: ApolloContext,
+  ): Promise<UserResponse> {
+    const errors = validateRegister(options);
+    if (errors) return { errors };
+
+    const { username, email, password } = options;
+    const passwordDigest = await argon2.hash(password);
+    const user = em.create(User, {
+      username,
+      email,
+      password: passwordDigest,
+    });
+    try {
+      await em.persistAndFlush(user);
+    } catch (error) {
+      if (error.detail.includes("already exists")) {
+        return {
+          errors: [
+            { field: "username", message: "that username is already in use" },
+          ],
+        };
+      }
+    }
+
+    req.session.userId = user.id;
+
+    return { user };
+  }
+```
+
+`register` uses the `validateRegister` util and returns errors if there are any, then saves the `email` along with `username` and `passwordDigest`.
