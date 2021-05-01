@@ -2265,3 +2265,19 @@ Which provides account details such as this:
   web: 'https://ethereal.email'
 }
 ```
+
+### Reset Password Email
+
+Users can enter an email to reset the password for that account (if it exists). The operation should be associated with a one use token.
+
+Install uuid and ioredis (to replace the redis library currently in use which doesn't support async/await out of the box):
+
+```shell
+yarn add uuid ioredis
+```
+
+And the types with:
+
+```shell
+yarn add -D @types/uuid @types/ioredis
+```
