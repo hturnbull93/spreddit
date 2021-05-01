@@ -12,6 +12,7 @@ import {
 } from "type-graphql";
 import { COOKIE_NAME } from "../constants";
 import { validateRegister } from "../utils/validateRegister";
+import isEmail from "validator/lib/isEmail";
 
 @ObjectType()
 class UserResponse {
@@ -67,13 +68,20 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async login(
-    @Arg("options") { username, password }: UsernamePasswordInput,
+    @Arg("usernameOrEmail") usernameOrEmail: string,
+    @Arg("password") password: string,
     @Ctx() { em, req }: ApolloContext,
   ): Promise<UserResponse> {
-    const user = await em.findOne(User, { username });
+    const findByEmail = isEmail(usernameOrEmail);
+    let user = await em.findOne(
+      User,
+      findByEmail ? { email: usernameOrEmail } : { username: usernameOrEmail },
+    );
     if (!user) {
       return {
-        errors: [{ field: "username", message: "that username doesn't exist" }],
+        errors: [
+          { field: "usernameOrEmail", message: "that user doesn't exist" },
+        ],
       };
     }
 

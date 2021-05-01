@@ -2076,3 +2076,28 @@ Update the `UserResolver` `register` mutation:
 ```
 
 `register` uses the `validateRegister` util and returns errors if there are any, then saves the `email` along with `username` and `passwordDigest`.
+
+The `login` mutation:
+
+```ts
+  @Mutation(() => UserResponse)
+  async login(
+    @Arg("usernameOrEmail") usernameOrEmail: string,
+    @Arg("password") password: string,
+    @Ctx() { em, req }: ApolloContext,
+  ): Promise<UserResponse> {
+    const findByEmail = isEmail(usernameOrEmail);
+    let user = await em.findOne(
+      User,
+      findByEmail ? { email: usernameOrEmail } : { username: usernameOrEmail },
+    );
+    if (!user) {
+      return {
+        errors: [
+          { field: "usernameOrEmail", message: "that user doesn't exist" },
+        ],
+      };
+    }
+```
+
+Here, the `isEmail` function is used to decide which field should be queried with `usernameOrEmail`. *It could possibly try the other field if it isn't found the first time, but given that no `@` are allowed in usernames it seems very unlikely that an input would be miscategorised.*
