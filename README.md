@@ -26,7 +26,7 @@ sudo service postgresql start && sudo service redis-server start
 cd server && yarn watch
 
 # start dev server
-cd server && yarn start
+cd server && yarn dev
 
 # start dev client
 cd client && yarn dev
@@ -2419,21 +2419,23 @@ The form needs a mutation to change the password on submit. In the `UserResolver
     @Arg("password") password: string,
     @Ctx() { em, redis, req }: ApolloContext,
   ): Promise<UserResponse> {
-    const errors = [];
+    const errors: FieldError[] = [];
+
     const passwordErrors = validatePassword(password);
     if (passwordErrors) errors.push(...passwordErrors);
 
-    const userId = await redis.get(`${FORGOT_PASSWORD_PREFIX}${token}`);
+    const key = `${FORGOT_PASSWORD_PREFIX}${token}`;
+    const userId = await redis.get(key);
     if (!userId) {
       errors.push({
         field: "token",
         message: "token expired",
       });
-      return { errors };
     }
 
-    const user = await em.findOne(User, { id: parseInt(userId) });
+    if (errors.length) return { errors };
 
+    const user = await em.findOne(User, { id: parseInt(userId as string) });
     if (!user) {
       errors.push({
         field: "user",
@@ -2446,10 +2448,14 @@ The form needs a mutation to change the password on submit. In the `UserResolver
     user.password = passwordDigest;
     await em.persistAndFlush(user);
 
+    await redis.del(key);
+
     req.session.userId = user.id;
 
     return { user };
   }
 ```
 
-The `changePassword` mutation takes a `token` and `password` that are strings, and returns a promise that resolves to a `UserResponse`. It validates the `password` using a newly abstracted `validatePassword` utility that returns an array of `FieldErrors` or `null`. If then attempts to get the `userId` which should be stored in Redis by the key of the `token` with the `FORGOT_PASSWORD_PREFIX`. If it doesn't find the key because it is expired (or the token has been tampered with) it adds a token error and returns the errors. If it did find the `userId` then it fetches the `user`. If there is no user (in the case the user was deleted in the interim before the reset password email was used) it returns a relevant error. If it did find the `user` it then hashes and saves the new password, and sets the session, and then returns the `user`.
+The `changePassword` mutation takes a `token` and `password` that are strings, and returns a promise that resolves to a `UserResponse`. It validates the `password` using a newly abstracted `validatePassword` utility that returns an array of `FieldErrors` or `null`. If then attempts to get the `userId` which should be stored in Redis by the key of the `token` with the `FORGOT_PASSWORD_PREFIX`. If it doesn't find the key because it is expired (or the token has been tampered with) it adds a token error, and then if there are any errors at this point returns the errors. If it did find the `userId` then it fetches the `user`. If there is no user (in the case the user was deleted in the interim before the reset password email was used) it returns a relevant error. If it did find the `user` it then hashes and saves the new password, and sets the session, removes the key from redis, and then returns the `user`.
+
+*Note that `userId` is cast as a string when finding the `user`, as if there were any errors, they would have already been returned before this point. However, the compiler was not able to infer that this is the case.*

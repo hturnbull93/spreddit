@@ -124,21 +124,23 @@ export class UserResolver {
     @Arg("password") password: string,
     @Ctx() { em, redis, req }: ApolloContext,
   ): Promise<UserResponse> {
-    const errors = [];
+    const errors: FieldError[] = [];
+
     const passwordErrors = validatePassword(password);
     if (passwordErrors) errors.push(...passwordErrors);
 
-    const userId = await redis.get(`${FORGOT_PASSWORD_PREFIX}${token}`);
+    const key = `${FORGOT_PASSWORD_PREFIX}${token}`;
+    const userId = await redis.get(key);
     if (!userId) {
       errors.push({
         field: "token",
         message: "token expired",
       });
-      return { errors };
     }
 
-    const user = await em.findOne(User, { id: parseInt(userId) });
+    if (errors.length) return { errors };
 
+    const user = await em.findOne(User, { id: parseInt(userId as string) });
     if (!user) {
       errors.push({
         field: "user",
@@ -150,6 +152,8 @@ export class UserResolver {
     const passwordDigest = await argon2.hash(password);
     user.password = passwordDigest;
     await em.persistAndFlush(user);
+
+    await redis.del(key);
 
     req.session.userId = user.id;
 
