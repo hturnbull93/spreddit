@@ -2543,3 +2543,28 @@ export default withUrqlClient(createUrqlClient)(ChangePassword as any);
 The `useChangePasswordMutation` hook is used, generated from `changePassword.graphql. When handling the errors if there is a key `token` in the map, the errors is set in state `tokenError`. If there is a `tokenError` the change password button is switched out for an alert displaying the error, and a link to reset the password again.
 
 *`ChangePassword` is cast as any when passed to the `withUrqlClient` HOC to stop TypeScript complaining about something I couldn't quite work out*
+
+Finally, the changePassword cache updater is added to the `cacheExchange` in `client/src/utils/createUrqlClient.ts`:
+
+```ts
+         ...
+          changePassword: (result, _args, cache, _info) => {
+            typedUpdateQuery<ChangePasswordMutation, MeQuery>(
+              cache,
+              { query: MeDocument },
+              result,
+              (r, q) => {
+                if (r.changePassword.errors) {
+                  return q;
+                } else {
+                  return {
+                    me: r.changePassword.user,
+                  };
+                }
+              },
+            );
+          },
+         ...
+```
+
+It does a very similar update to the login and register updaters.
