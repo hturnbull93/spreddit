@@ -2459,3 +2459,87 @@ The form needs a mutation to change the password on submit. In the `UserResolver
 The `changePassword` mutation takes a `token` and `password` that are strings, and returns a promise that resolves to a `UserResponse`. It validates the `password` using a newly abstracted `validatePassword` utility that returns an array of `FieldErrors` or `null`. If then attempts to get the `userId` which should be stored in Redis by the key of the `token` with the `FORGOT_PASSWORD_PREFIX`. If it doesn't find the key because it is expired (or the token has been tampered with) it adds a token error, and then if there are any errors at this point returns the errors. If it did find the `userId` then it fetches the `user`. If there is no user (in the case the user was deleted in the interim before the reset password email was used) it returns a relevant error. If it did find the `user` it then hashes and saves the new password, and sets the session, removes the key from redis, and then returns the `user`.
 
 *Note that `userId` is cast as a string when finding the `user`, as if there were any errors, they would have already been returned before this point. However, the compiler was not able to infer that this is the case.*
+
+Back in the `ChangePassword` component: 
+
+```tsx
+import React, { useState } from "react";
+import { Form, Formik } from "formik";
+import { NextPage } from "next";
+import { useRouter } from "next/router";
+import { Alert, AlertIcon, Button, Link } from "@chakra-ui/react";
+import Wrapper from "../../components/Wrapper";
+import InputField from "../../components/InputField";
+import { toErrorMap } from "../../utils/toErrorMap";
+import { useChangePasswordMutation } from "../../generated/graphql";
+import { withUrqlClient } from "next-urql";
+import { createUrqlClient } from "../../utils/createUrqlClient";
+import NextLink from "next/link";
+
+const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
+  const router = useRouter();
+  const [_data, changePassword] = useChangePasswordMutation();
+  const [tokenError, setTokenError] = useState("");
+  return (
+    <Wrapper variant="small">
+      <Formik
+        initialValues={{ password: "" }}
+        onSubmit={async ({ password }, { setErrors }) => {
+          const response = await changePassword({ password, token });
+          if (response.data?.changePassword.errors) {
+            const errorMap = toErrorMap(response.data.changePassword.errors);
+            if ("token" in errorMap) setTokenError(errorMap.token);
+            setErrors(errorMap);
+          } else if (response.data?.changePassword.user) {
+            router.push("/");
+          }
+          return response;
+        }}
+      >
+        {({ isSubmitting }) => (
+          <Form>
+            <InputField
+              name="password"
+              placeholder="new password"
+              label="New password"
+              type="password"
+            />
+            {tokenError ? (
+              <>
+                <Alert mt={4} mb={4} status="error">
+                  <AlertIcon />
+                  {tokenError}
+                </Alert>
+                <NextLink href="/forgot-password">
+                  <Link>Reset password again</Link>
+                </NextLink>
+              </>
+            ) : (
+              <Button
+                mt={4}
+                isLoading={isSubmitting}
+                type="submit"
+                colorScheme="teal"
+              >
+                Change password
+              </Button>
+            )}
+          </Form>
+        )}
+      </Formik>
+    </Wrapper>
+  );
+};
+
+ChangePassword.getInitialProps = ({ query }) => {
+  return {
+    token: query.token as string,
+  };
+};
+
+export default withUrqlClient(createUrqlClient)(ChangePassword as any);
+```
+
+The `useChangePasswordMutation` hook is used, generated from `changePassword.graphql. When handling the errors if there is a key `token` in the map, the errors is set in state `tokenError`. If there is a `tokenError` the change password button is switched out for an alert displaying the error, and a link to reset the password again.
+
+*`ChangePassword` is cast as any when passed to the `withUrqlClient` HOC to stop TypeScript complaining about something I couldn't quite work out*
