@@ -2314,3 +2314,9 @@ export type ApolloContext = {
   redis: Redis;
 };
 ```
+
+Now the replaced redis library can be removed with:
+
+```shell
+yarn remove redis
+```
