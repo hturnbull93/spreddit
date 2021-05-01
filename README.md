@@ -2101,3 +2101,37 @@ The `login` mutation:
 ```
 
 Here, the `isEmail` function is used to decide which field should be queried with `usernameOrEmail`. *It could possibly try the other field if it isn't found the first time, but given that no `@` are allowed in usernames it seems very unlikely that an input would be miscategorised.*
+
+Adding in `email` and changing login to `usernameOrEmail` requires updates to `client/src/graphql/mutations/login.graphql`:
+
+```graphql
+mutation Login($usernameOrEmail: String!, $password: String!) {
+  login(usernameOrEmail: $usernameOrEmail, password: $password) {
+    errors {
+      field
+      message
+    }
+    user {
+      ...RegularUser
+    }
+  }
+}
+```
+
+And `client/src/graphql/mutations/register.graphql`:
+
+```graphql
+mutation Register($options: UsernamePasswordInput!) {
+  register(options: $options) {
+    errors {
+      field
+      message
+    }
+    user {
+      ...RegularUser
+    }
+  }
+}
+```
+
+After which types can be regenerated with `yarn gen`.
