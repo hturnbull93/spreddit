@@ -2165,3 +2165,31 @@ In `client/src/pages/login.tsx` the form field `username` is changed to `usernam
           </Form>
        ...
 ```
+
+And in `client/src/pages/register.tsx` an additional field for `email` is added:
+
+```tsx
+      ...
+      <Formik
+        initialValues={{ username: "", email: "", password: "" }}
+        onSubmit={async (values, { setErrors }) => {
+          const response = await register({ options: values });
+          if (response.data?.register.errors) {
+            setErrors(toErrorMap(response.data.register.errors));
+          } else if (response.data?.register.user) {
+            router.push("/");
+          }
+          return response;
+        }}
+      >
+        {({ isSubmitting }) => (
+          <Form>
+            ...
+            <Box mt={4}>
+              <InputField name="email" placeholder="email" label="Email" />
+            </Box>
+            ...
+          </Form>
+       ...
+
+```
