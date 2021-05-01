@@ -52,6 +52,18 @@ const Login: React.FC<LoginProps> = ({}) => {
             >
               Log in
             </Button>
+            <Button
+              ml={4}
+              mt={4}
+              variant="ghost"
+              colorScheme="teal"
+              color="black"
+              onClick={() => {
+                router.push("/forgot-password");
+              }}
+            >
+              Forgot password
+            </Button>
           </Form>
         )}
       </Formik>

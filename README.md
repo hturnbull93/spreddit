@@ -2634,3 +2634,22 @@ export default withUrqlClient(createUrqlClient)(ForgotPassword);
 The `ForgotPassword` component is very similar to the previous components, with an email field in the form that when submitted calls the `forgotPassword` mutation. Once the response is back `success` is set to true, and a message is displayed.
 
 *The ForgotPassword mutation could be altered to accept either an email or username, similar to login. Perhaps this will be altered in future.*
+
+Also, added a button to reset password in the `Login` component:
+
+```tsx
+            ...
+            <Button
+              ml={4}
+              mt={4}
+              variant="ghost"
+              colorScheme="teal"
+              color="black"
+              onClick={() => {
+                router.push("/forgot-password");
+              }}
+            >
+              Forgot password
+            </Button>
+            ...
+```
