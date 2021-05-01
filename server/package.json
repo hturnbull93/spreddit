@@ -8,6 +8,7 @@
     "dev": "nodemon dist/index.js",
     "start": "node dist/index.js",
     "migration:create": "npx mikro-orm migration:create",
+    "testEmail:create": "node dist/createTestEmail.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

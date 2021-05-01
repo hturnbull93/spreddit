@@ -1948,19 +1948,7 @@ export default NavBar;
 
 ### Reset Password
 
-Install Nodemailer on the server with:
-
-```shell
-yarn add nodemailer
-```
-
-And install types with:
-
-```shell
-yarn add -D @types/nodemailer
-```
-
-Now, in order to reset a password, users need email addresses.
+In order to reset a password, users need email addresses.
 
 Add the email field, very similar to the username field, to the User entity in `server/src/entities/User.ts`:
 
@@ -2244,3 +2232,34 @@ export async function sendEmail(to: string, html: string) {
 ```
 
 The `sendEmail` utility function takes `to` and `html` as strings, creates a transport and then uses that to send the email. `MAILER_HOST`, `MAILER_PASS`, `MAILER_PORT`, `MAILER_USER`, are constants coming from the `.env`. For testing purposes they are set to an Ethereal email, provided by Nodemailer. 
+
+To create test email accounts, in `server/src/createTestEmail.ts`:
+
+```ts
+import nodemailer from "nodemailer";
+
+const createTestEmail = async () => {
+  console.log(await nodemailer.createTestAccount());
+};
+
+createTestEmail();
+```
+
+The `createTestEmail` function simply logs the test account created by `nodemailer.createTestAccount`. The test accounts don't last forever, so new ones can be created when needed using the script added to `server/package.json`:
+
+```json
+    "testEmail:create": "node dist/createTestEmail.js",
+```
+
+Which provides account details such as this: 
+
+```js
+{
+  user: 'iyzrrucbdcrdkjze@ethereal.email', // MAILER_USER
+  pass: '4KnyWHdHDs4nMPycqh',              // MAILER_PASS
+  smtp: { host: 'smtp.ethereal.email', port: 587, secure: false }, // MAILER_HOST and MAILER_PORT
+  imap: { host: 'imap.ethereal.email', port: 993, secure: true },
+  pop3: { host: 'pop3.ethereal.email', port: 995, secure: true },
+  web: 'https://ethereal.email'
+}
+```
