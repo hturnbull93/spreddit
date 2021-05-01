@@ -2135,3 +2135,33 @@ mutation Register($options: UsernamePasswordInput!) {
 ```
 
 After which types can be regenerated with `yarn gen`.
+
+In `client/src/pages/login.tsx` the form field `username` is changed to `usernameOrEmail`:
+
+```tsx
+      ...
+      <Formik
+        initialValues={{ usernameOrEmail: "", password: "" }}
+        onSubmit={async (values, { setErrors }) => {
+          const response = await login(values);
+          if (response.data?.login.errors) {
+            setErrors(toErrorMap(response.data.login.errors));
+          } else if (response.data?.login.user) {
+            router.push("/");
+          }
+          return response;
+        }}
+      >
+        {({ isSubmitting }) => (
+          <Form>
+            <InputField
+              name="usernameOrEmail"
+              placeholder="username or email"
+              label="Username or Email"
+            />
+
+            ...
+
+          </Form>
+       ...
+```
