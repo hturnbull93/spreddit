@@ -1977,3 +1977,19 @@ Add the email field, very similar to the username field, to the User entity in `
 Then run create the migration with `yarn migration:create`.
 
 *MikroORM complains that it can't perform the migration because existing records in the user table don't have emails, so I deleted those for the sake of speed rather than allowing that column to be null or performing some migration for the existing test users.*
+
+Add the `email` field to `UsernamePasswordInput`, and extract it to `server/src/types.ts` along with `FieldErrors`:
+
+```ts
+@InputType()
+export class UsernamePasswordInput {
+  @Field()
+  username: string;
+
+  @Field()
+  password: string;
+
+  @Field()
+  email: string;
+}
+```

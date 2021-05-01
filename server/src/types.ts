@@ -1,5 +1,6 @@
 import { EntityManager, IDatabaseDriver, Connection } from "@mikro-orm/core";
 import { Request, Response } from "express";
+import { Field, InputType, ObjectType } from "type-graphql";
 
 declare module "express-session" {
   interface Session {
@@ -12,3 +13,24 @@ export type ApolloContext = {
   req: Request;
   res: Response;
 };
+
+@InputType()
+export class UsernamePasswordInput {
+  @Field()
+  username: string;
+
+  @Field()
+  password: string;
+
+  @Field()
+  email: string;
+}
+
+@ObjectType()
+export class FieldError {
+  @Field()
+  field: string;
+
+  @Field()
+  message: string;
+}
