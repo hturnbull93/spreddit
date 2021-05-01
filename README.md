@@ -2355,3 +2355,57 @@ This prefix allows the purpose of the key to easily be identified. The expiry of
 The body for the email (a single anchor tag at the moment) is created and passed with the user's email to the `sendEmail` function.
 
 The function returns true regardless if the user was found so the client does not get information that the user exists or not.
+
+The link that is generated isn't yet created, so a page needs to be created at `client/src/pages/change-password/[token].tsx`. The bracket here is part of a Next.js convention that this part of the url is variable:
+
+```tsx
+import React from "react";
+import { Form, Formik } from "formik";
+import { NextPage } from "next";
+import { Button } from "@chakra-ui/react";
+import Wrapper from "../../components/Wrapper";
+import InputField from "../../components/InputField";
+
+const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
+  return (
+    <Wrapper variant="small">
+      <Formik
+        initialValues={{ newPassword: "" }}
+        onSubmit={(values) => {
+          console.log('values', values)
+          console.log('token', token)
+        }}
+      >
+        {({ isSubmitting }) => (
+          <Form>
+            <InputField
+              name="newPassword"
+              placeholder="new password"
+              label="New password"
+              type="password"
+            />
+            <Button
+              mt={4}
+              isLoading={isSubmitting}
+              type="submit"
+              colorScheme="teal"
+            >
+              Change password
+            </Button>
+          </Form>
+        )}
+      </Formik>
+    </Wrapper>
+  );
+};
+
+ChangePassword.getInitialProps = ({ query }) => {
+  return {
+    token: query.token as string,
+  };
+};
+
+export default ChangePassword;
+```
+
+The `ChangePassword` component is a `NextPage`, and its `getInitialProps` function is defined to get the token from the query string, cast as a string. The token can then be taken from the props and for now, is logged with the values on form submission.
