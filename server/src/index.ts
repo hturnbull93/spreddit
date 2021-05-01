@@ -10,7 +10,12 @@ import cors from "cors";
 
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
-import { COOKIE_NAME, CORS_ORIGIN, SESSION_SECRET, __prod__ } from "./constants";
+import {
+  COOKIE_NAME,
+  CORS_ORIGIN,
+  SESSION_SECRET,
+  __prod__,
+} from "./constants";
 import { ApolloContext } from "./types";
 
 const main = async () => {
