@@ -32,7 +32,7 @@ const main = async () => {
   );
 
   const RedisStore = connectRedis(session);
-  const redis = ioredis();
+  const redis = new ioredis();
   app.use(
     session({
       name: COOKIE_NAME,
