@@ -2409,3 +2409,47 @@ export default ChangePassword;
 ```
 
 The `ChangePassword` component is a `NextPage`, and its `getInitialProps` function is defined to get the token from the query string, cast as a string. The token can then be taken from the props and for now, is logged with the values on form submission.
+
+The form needs a mutation to change the password on submit. In the `UserResolver`:
+
+```ts
+  @Mutation(() => UserResponse)
+  async changePassword(
+    @Arg("token") token: string,
+    @Arg("password") password: string,
+    @Ctx() { em, redis, req }: ApolloContext,
+  ): Promise<UserResponse> {
+    const errors = [];
+    const passwordErrors = validatePassword(password);
+    if (passwordErrors) errors.push(...passwordErrors);
+
+    const userId = await redis.get(`${FORGOT_PASSWORD_PREFIX}${token}`);
+    if (!userId) {
+      errors.push({
+        field: "token",
+        message: "token expired",
+      });
+      return { errors };
+    }
+
+    const user = await em.findOne(User, { id: parseInt(userId) });
+
+    if (!user) {
+      errors.push({
+        field: "user",
+        message: "user no longer exists",
+      });
+      return { errors };
+    }
+
+    const passwordDigest = await argon2.hash(password);
+    user.password = passwordDigest;
+    await em.persistAndFlush(user);
+
+    req.session.userId = user.id;
+
+    return { user };
+  }
+```
+
+The `changePassword` mutation takes a `token` and `password` that are strings, and returns a promise that resolves to a `UserResponse`. It validates the `password` using a newly abstracted `validatePassword` utility that returns an array of `FieldErrors` or `null`. If then attempts to get the `userId` which should be stored in Redis by the key of the `token` with the `FORGOT_PASSWORD_PREFIX`. If it doesn't find the key because it is expired (or the token has been tampered with) it adds a token error and returns the errors. If it did find the `userId` then it fetches the `user`. If there is no user (in the case the user was deleted in the interim before the reset password email was used) it returns a relevant error. If it did find the `user` it then hashes and saves the new password, and sets the session, and then returns the `user`.

@@ -12,7 +12,7 @@ import {
 } from "type-graphql";
 import { v4 } from "uuid";
 import { COOKIE_NAME, CORS_ORIGIN, FORGOT_PASSWORD_PREFIX } from "../constants";
-import { validateRegister } from "../utils/validateRegister";
+import { validatePassword, validateRegister } from "../utils/validators";
 import isEmail from "validator/lib/isEmail";
 import { sendEmail } from "../utils/sendEmail";
 
@@ -116,6 +116,44 @@ export class UserResolver {
     await sendEmail(user.email, resetPasswordBody);
 
     return true;
+  }
+
+  @Mutation(() => UserResponse)
+  async changePassword(
+    @Arg("token") token: string,
+    @Arg("password") password: string,
+    @Ctx() { em, redis, req }: ApolloContext,
+  ): Promise<UserResponse> {
+    const errors = [];
+    const passwordErrors = validatePassword(password);
+    if (passwordErrors) errors.push(...passwordErrors);
+
+    const userId = await redis.get(`${FORGOT_PASSWORD_PREFIX}${token}`);
+    if (!userId) {
+      errors.push({
+        field: "token",
+        message: "token expired",
+      });
+      return { errors };
+    }
+
+    const user = await em.findOne(User, { id: parseInt(userId) });
+
+    if (!user) {
+      errors.push({
+        field: "user",
+        message: "user no longer exists",
+      });
+      return { errors };
+    }
+
+    const passwordDigest = await argon2.hash(password);
+    user.password = passwordDigest;
+    await em.persistAndFlush(user);
+
+    req.session.userId = user.id;
+
+    return { user };
   }
 
   @Mutation(() => Boolean)
