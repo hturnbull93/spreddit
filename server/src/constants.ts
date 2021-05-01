@@ -11,3 +11,4 @@ export const MAILER_PORT = Number(process.env.MAILER_PORT) as number;
 export const SESSION_SECRET = process.env.SESSION_SECRET || "secret";
 export const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:3000";
 export const COOKIE_NAME = "qid";
+export const FORGOT_PASSWORD_PREFIX = "forgot-password:";

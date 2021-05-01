@@ -2320,3 +2320,38 @@ Now the replaced redis library can be removed with:
 ```shell
 yarn remove redis
 ```
+
+In `server/src/resolvers/user.ts`:
+
+```ts
+  @Mutation(() => Boolean)
+  async forgotPassword(
+    @Arg("email") email: string,
+    @Ctx() { em, redis }: ApolloContext,
+  ) {
+    const user = await em.findOne(User, { email });
+    if (!user) return true;
+
+    const token = v4();
+
+    const threeDays = 1000 * 60 * 24 * 3;
+    redis.set(`${FORGOT_PASSWORD_PREFIX}${token}`, user.id, "ex", threeDays);
+
+    const resetPasswordBody = `<a href="${CORS_ORIGIN}/change-password/${token}">Reset password</a>`;
+    await sendEmail(user.email, resetPasswordBody);
+
+    return true;
+  }
+```
+
+The `forgotPassword` mutation resolver takes an email and attempts to find the user by that email. If it can't it returns true immediately. If the user exists it creates a token using uuid's `v4` function, and uses `redis` from the context to set a key using a the new `FORGOT_PASSWORD_PREFIX` from `server/src/constants.ts`:
+
+```ts
+export const FORGOT_PASSWORD_PREFIX = "forgot-password:";
+```
+
+This prefix allows the purpose of the key to easily be identified. The expiry of the key is set to three days.
+
+The body for the email (a single anchor tag at the moment) is created and passed with the user's email to the `sendEmail` function.
+
+The function returns true regardless if the user was found so the client does not get information that the user exists or not.

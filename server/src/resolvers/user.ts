@@ -10,9 +10,11 @@ import {
   Query,
   Resolver,
 } from "type-graphql";
-import { COOKIE_NAME } from "../constants";
+import { v4 } from "uuid";
+import { COOKIE_NAME, CORS_ORIGIN, FORGOT_PASSWORD_PREFIX } from "../constants";
 import { validateRegister } from "../utils/validateRegister";
 import isEmail from "validator/lib/isEmail";
+import { sendEmail } from "../utils/sendEmail";
 
 @ObjectType()
 class UserResponse {
@@ -95,6 +97,25 @@ export class UserResolver {
     req.session.userId = user.id;
 
     return { user };
+  }
+
+  @Mutation(() => Boolean)
+  async forgotPassword(
+    @Arg("email") email: string,
+    @Ctx() { em, redis }: ApolloContext,
+  ) {
+    const user = await em.findOne(User, { email });
+    if (!user) return true;
+
+    const token = v4();
+
+    const threeDays = 1000 * 60 * 24 * 3;
+    redis.set(`${FORGOT_PASSWORD_PREFIX}${token}`, user.id, "ex", threeDays);
+
+    const resetPasswordBody = `<a href="${CORS_ORIGIN}/change-password/${token}">Reset password</a>`;
+    await sendEmail(user.email, resetPasswordBody);
+
+    return true;
   }
 
   @Mutation(() => Boolean)
