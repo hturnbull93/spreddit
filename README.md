@@ -2041,7 +2041,7 @@ export const validateRegister = ({
 
 Update the `UserResolver` `register` mutation:
 
-```tsx
+```ts
   @Mutation(() => UserResponse)
   async register(
     @Arg("options") options: UsernamePasswordInput,
