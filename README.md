@@ -2193,3 +2193,54 @@ And in `client/src/pages/register.tsx` an additional field for `email` is added:
        ...
 
 ```
+
+Now that users have emails, the reset password mutation can be implemented.
+
+In order to send email install Nodemailer on the server with:
+
+```shell
+yarn add nodemailer
+```
+
+And install types with:
+
+```shell
+yarn add -D @types/nodemailer
+```
+
+*Nodemailer was installed slightly earlier in the commit history, but makes sense to add it to the dev journal here.*
+
+In `server/src/utils/sendEmail.ts`:
+
+```ts
+import nodemailer from "nodemailer";
+import {
+  MAILER_HOST,
+  MAILER_PASS,
+  MAILER_PORT,
+  MAILER_USER,
+} from "../constants";
+
+export async function sendEmail(to: string, html: string) {
+  const transporter = nodemailer.createTransport({
+    host: MAILER_HOST,
+    port: MAILER_PORT,
+    secure: false,
+    auth: {
+      user: MAILER_USER,
+      pass: MAILER_PASS,
+    },
+  });
+
+  const info = await transporter.sendMail({
+    from: '"Fred Foo 👻" <foo@example.com>',
+    to,
+    subject: "Reset Password",
+    html,
+  });
+
+  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+}
+```
+
+The `sendEmail` utility function takes `to` and `html` as strings, creates a transport and then uses that to send the email. `MAILER_HOST`, `MAILER_PASS`, `MAILER_PORT`, `MAILER_USER`, are constants coming from the `.env`. For testing purposes they are set to an Ethereal email, provided by Nodemailer. 
