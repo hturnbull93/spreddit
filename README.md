@@ -2281,3 +2281,36 @@ And the types with:
 ```shell
 yarn add -D @types/uuid @types/ioredis
 ```
+
+Replacing redis with ioredis in `server/src/index.ts`:
+
+```ts
+...
+import ioredis from "ioredis";
+...
+
+const main = async () => {
+  ...
+  const redis = ioredis();
+  ...
+  const apolloServer = new ApolloServer({
+    ...
+    context: ({ req, res }): ApolloContext => ({ em: orm.em, req, res, redis }),
+  });
+};
+```
+
+The redis instance is passed through the apollo server context also, which is added to the `ApolloContext` type in `server/src/types.ts`:
+
+```ts
+import { Redis } from "ioredis";
+
+...
+
+export type ApolloContext = {
+  em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>;
+  req: Request;
+  res: Response;
+  redis: Redis;
+};
+```

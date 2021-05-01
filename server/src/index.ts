@@ -3,7 +3,7 @@ import { MikroORM } from "@mikro-orm/core";
 import mikroConfig from "./mikro-orm.config";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
-import redis from "redis";
+import ioredis from "ioredis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import cors from "cors";
@@ -32,11 +32,11 @@ const main = async () => {
   );
 
   const RedisStore = connectRedis(session);
-  const redisClient = redis.createClient();
+  const redis = ioredis();
   app.use(
     session({
       name: COOKIE_NAME,
-      store: new RedisStore({ client: redisClient, disableTouch: true }),
+      store: new RedisStore({ client: redis, disableTouch: true }),
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
         httpOnly: true,
@@ -54,7 +54,7 @@ const main = async () => {
       resolvers: [UserResolver, PostResolver],
       validate: false,
     }),
-    context: ({ req, res }): ApolloContext => ({ em: orm.em, req, res }),
+    context: ({ req, res }): ApolloContext => ({ em: orm.em, req, res, redis }),
   });
   apolloServer.applyMiddleware({ app, cors: false });
 
