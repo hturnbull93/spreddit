@@ -3099,3 +3099,37 @@ Finally, MikroOrm migrations are deleted, related scripts and config removed fro
 ```
 yarn remove @mikro-orm/cli @mikro-orm/core @mikro-orm/migrations @mikro-orm/postgresql
 ```
+
+### Expanding on Users and Posts
+
+Posts will have a many to one relationship to Users. Posts will also have text, and points.
+
+In `server/src/entities/Post.ts` the following columns are added:
+
+```ts
+  @Field(() => String)
+  @Column()
+  text!: string;
+
+  @Field(() => Int)
+  @Column({ default: 0 })
+  points!: number;
+
+  @Field(() => Int)
+  @Column()
+  creatorId!: number;
+
+  @ManyToOne(() => User, (user) => user.posts)
+  creator: User;
+```
+
+Here the `text` and `points` columns are pretty straightforward, and similar to those seen before. The `creatorId` field is a required number, and acts as the foreign key for the relationship defined below. The `ManyToOne` decorator is used to create a relationship between the `creatorId` and the `creator`, which is available on the user as its `posts`.
+
+In `server/src/entities/User.ts` the inverse relationship is added:
+
+```ts
+  @OneToMany(() => Post, (post) => post.creator)
+  posts: Post[];
+```
+
+The `OneToMany` decorator defines the fact that the `User` can have many posts, where the foreign key is the `post.creator`.
