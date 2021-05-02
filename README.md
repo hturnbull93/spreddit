@@ -2792,3 +2792,51 @@ export class User extends BaseEntity {
 ```
 
 The `User` entity extends the TypeORM `BaseEntity`, allowing calls such as `User.find()` etc. The `Property` decorators are switched for `Column`s, and in the case of the `createdAt` and `updatedAt`, specific `CreateDateColumn` and `UpdateDateColumn` decorators are used. TypeORM is also better at inferring the correct column type, so now only options for uniqueness are passed. Similar changes are also made in `server/src/entities/Post.ts`
+
+The resolvers now need to use TypeORM. In the PostResolver:
+
+```ts
+import { Post } from "../entities/Post";
+import { Arg, Mutation, Query, Resolver } from "type-graphql";
+
+@Resolver()
+export class PostResolver {
+  @Query(() => [Post])
+  posts(): Promise<Post[]> {
+    return Post.find();
+  }
+
+  @Query(() => Post, { nullable: true })
+  post(@Arg("id") id: number): Promise<Post | undefined> {
+    return Post.findOne(id);
+  }
+
+  @Mutation(() => Post)
+  async createPost(@Arg("title") title: string): Promise<Post> {
+    return Post.create({ title }).save();
+  }
+
+  @Mutation(() => Post, { nullable: true })
+  async updatePost(
+    @Arg("title", () => String, { nullable: true }) title: string,
+    @Arg("id") id: number,
+  ): Promise<Post | null> {
+    const post = await Post.findOne(id);
+    if (!post) return null;
+
+    if (typeof title !== "undefined") {
+      post.title = title;
+      await post.save();
+    }
+    return post;
+  }
+
+  @Mutation(() => Boolean)
+  async deletePost(@Arg("id") id: number): Promise<Boolean> {
+    await Post.delete(id);
+    return true;
+  }
+}
+```
+
+As `em` is no longer needed, all context arguments are removed, simplifying things greatly. TypeORM seems quite similar to Mongoose in terms of the entity and methods available.
