@@ -28,7 +28,7 @@ export class PostResolver {
 
     if (typeof title !== "undefined") {
       post.title = title;
-      await Post.update({ id }, { title });
+      await post.save();
     }
     return post;
   }
