@@ -3093,3 +3093,9 @@ A more performative, but perhaps frustrating implementation could be:
 Here, `createQueryBuilder` is used to construct a query that will insert the fields into the user table, returning everything. The `user` can then be constructed form the result's raw output. A similar conversion of caught errors to error arrays is performed, however only the email or username will be thrown at one time.
 
 I would use this approach for more frequent inserts that have fewer restraints.
+
+Finally, MikroOrm migrations are deleted, related scripts and config removed from `server/package.json`, and the package uninstalled with:
+
+```
+yarn remove @mikro-orm/cli @mikro-orm/core @mikro-orm/migrations @mikro-orm/postgresql
+```
