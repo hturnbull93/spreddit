@@ -2689,3 +2689,11 @@ mutation Login($usernameOrEmail: String!, $password: String!) {
   }
 }
 ```
+
+### Replacing MikroORM with TypeORM
+
+Install TypeORM with:
+
+```shell
+yarn add typeorm
+```
