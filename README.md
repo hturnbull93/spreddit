@@ -2653,3 +2653,39 @@ Also, added a button to reset password in the `Login` component:
             </Button>
             ...
 ```
+
+### Further Fragmenting GraphQL
+
+Currently the `RegularUser` is the only fragment, however each of the `register`, `login`, and `changePassword` mutations return very similar things that could be fragmented further.
+
+In `client/src/graphql/fragments/RegularError.graphql`:
+
+```graphql
+fragment RegularError on FieldError {
+  field
+  message
+}
+```
+
+`RegularError` is composed with `RegularUser` into `RegularUserResponse` in `client/src/graphql/fragments/RegularUserResponse.graphql`:
+
+```graphql
+fragment RegularUserResponse on UserResponse {
+  errors {
+    ...RegularError
+  }
+  user {
+    ...RegularUser
+  }
+}
+```
+
+Which in turn is used on the mutations, for example `login` becomes:
+
+```graphql
+mutation Login($usernameOrEmail: String!, $password: String!) {
+  login(usernameOrEmail: $usernameOrEmail, password: $password) {
+    ...RegularUserResponse
+  }
+}
+```
