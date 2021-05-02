@@ -2749,3 +2749,46 @@ export default typeormConfig;
 `typeormConfig` is types as TypeORM's `ConnectionOptions`. The `synchronise` option will create the database schema on every application launch, good for development but not good for production, as it could destroy data.
 
 `server/src/mikro-orm.config.ts` is also removed.
+
+The entities are updated also, for example in `server/src/entities/User.ts`:
+
+```ts
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from "typeorm";
+import { Field, Int, ObjectType } from "type-graphql";
+
+@ObjectType()
+@Entity()
+export class User extends BaseEntity {
+  @Field(() => Int)
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Field(() => String)
+  @CreateDateColumn()
+  createdAt = Date;
+
+  @Field(() => String)
+  @UpdateDateColumn()
+  updatedAt = Date;
+
+  @Field(() => String)
+  @Column({ unique: true })
+  username!: string;
+
+  @Field(() => String)
+  @Column({ unique: true })
+  email!: string;
+
+  @Column()
+  password!: string;
+}
+```
+
+The `User` entity extends the TypeORM `BaseEntity`, allowing calls such as `User.find()` etc. The `Property` decorators are switched for `Column`s, and in the case of the `createdAt` and `updatedAt`, specific `CreateDateColumn` and `UpdateDateColumn` decorators are used. TypeORM is also better at inferring the correct column type, so now only options for uniqueness are passed. Similar changes are also made in `server/src/entities/Post.ts`
