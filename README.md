@@ -2746,7 +2746,7 @@ const typeormConfig: ConnectionOptions = {
 export default typeormConfig;
 ```
 
-`typeormConfig` is types as TypeORM's `ConnectionOptions`. The `synchronise` option will create the database schema on every application launch, good for development but not good for production, as it could destroy data.
+`typeormConfig` is typed as TypeORM's `ConnectionOptions`. The `synchronize` option will create the database schema without the need for migrations on every application launch, good for development but not good for production, as it could destroy data.
 
 `server/src/mikro-orm.config.ts` is also removed.
 
