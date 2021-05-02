@@ -2697,3 +2697,55 @@ Install TypeORM with:
 ```shell
 yarn add typeorm
 ```
+
+TypeORM has a similar setup in concept to MikroORM, but with some differences in syntax. In `server/src/index.ts`:
+
+```ts
+...
+import { createConnection } from "typeorm";
+
+import typeormConfig from "./typeorm.config";
+...
+
+const main = async () => {
+  await createConnection(typeormConfig);
+
+  ...
+
+  const apolloServer = new ApolloServer({
+    ...
+    context: ({ req, res }): ApolloContext => ({ req, res, redis }),
+  });
+...
+};
+
+main();
+```
+
+
+The connection is created using the `typeormConfig`, and the `em` no longer needs to be passed through context any more, so is removed from `ApolloContext`. 
+
+In `server/src/typeorm.config.ts`:
+
+```ts
+import { ConnectionOptions } from "typeorm";
+import { DB_PASS, DB_USER } from "./constants";
+import { Post } from "./entities/Post";
+import { User } from "./entities/User";
+
+const typeormConfig: ConnectionOptions = {
+  type: "postgres",
+  database: "reddit2",
+  username: DB_USER,
+  password: DB_PASS,
+  logging: true,
+  synchronize: true,
+  entities: [Post, User],
+};
+
+export default typeormConfig;
+```
+
+`typeormConfig` is types as TypeORM's `ConnectionOptions`. The `synchronise` option will create the database schema on every application launch, good for development but not good for production, as it could destroy data.
+
+`server/src/mikro-orm.config.ts` is also removed.
