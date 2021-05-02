@@ -28,40 +28,49 @@ class UserResponse {
 @Resolver()
 export class UserResolver {
   @Query(() => User, { nullable: true })
-  async me(@Ctx() { em, req }: ApolloContext): Promise<User | null> {
+  async me(@Ctx() { req }: ApolloContext): Promise<User | undefined> {
     const { userId } = req.session;
-    if (!userId) return null;
+    if (!userId) return;
 
-    const user = await em.findOne(User, { id: userId });
-    return user;
+    return User.findOne(userId);
   }
 
   @Mutation(() => UserResponse)
   async register(
     @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { em, req }: ApolloContext,
+    @Ctx() { req }: ApolloContext,
   ): Promise<UserResponse> {
-    const errors = validateRegister(options);
+    let errors = validateRegister(options);
     if (errors) return { errors };
 
     const { username, email, password } = options;
+
+    const existingUsers = await User.find({ where: [{ username }, { email }] });
+    errors = existingUsers.flatMap((existingUser) => {
+      const existingUserErrors = [];
+      if (existingUser.email === email) {
+        existingUserErrors.push({
+          field: "email",
+          message: "that email is already in use",
+        });
+      }
+      if (existingUser.username === username) {
+        existingUserErrors.push({
+          field: "username",
+          message: "that username is already in use",
+        });
+      }
+      return existingUserErrors;
+    });
+    if (errors.length) return { errors };
+
     const passwordDigest = await argon2.hash(password);
-    const user = em.create(User, {
+
+    const user = await User.create({
       username,
       email,
       password: passwordDigest,
-    });
-    try {
-      await em.persistAndFlush(user);
-    } catch (error) {
-      if (error.detail.includes("already exists")) {
-        return {
-          errors: [
-            { field: "username", message: "that username is already in use" },
-          ],
-        };
-      }
-    }
+    }).save();
 
     req.session.userId = user.id;
 
@@ -72,11 +81,10 @@ export class UserResolver {
   async login(
     @Arg("usernameOrEmail") usernameOrEmail: string,
     @Arg("password") password: string,
-    @Ctx() { em, req }: ApolloContext,
+    @Ctx() { req }: ApolloContext,
   ): Promise<UserResponse> {
     const findByEmail = isEmail(usernameOrEmail);
-    let user = await em.findOne(
-      User,
+    let user = await User.findOne(
       findByEmail ? { email: usernameOrEmail } : { username: usernameOrEmail },
     );
     if (!user) {
@@ -102,9 +110,9 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async forgotPassword(
     @Arg("email") email: string,
-    @Ctx() { em, redis }: ApolloContext,
+    @Ctx() { redis }: ApolloContext,
   ) {
-    const user = await em.findOne(User, { email });
+    const user = await User.findOne({ email });
     if (!user) return true;
 
     const token = v4();
@@ -122,7 +130,7 @@ export class UserResolver {
   async changePassword(
     @Arg("token") token: string,
     @Arg("password") password: string,
-    @Ctx() { em, redis, req }: ApolloContext,
+    @Ctx() { redis, req }: ApolloContext,
   ): Promise<UserResponse> {
     const errors: FieldError[] = [];
 
@@ -140,7 +148,7 @@ export class UserResolver {
 
     if (errors.length) return { errors };
 
-    const user = await em.findOne(User, { id: parseInt(userId as string) });
+    const user = await User.findOne(parseInt(userId as string));
     if (!user) {
       errors.push({
         field: "user",
@@ -151,7 +159,7 @@ export class UserResolver {
 
     const passwordDigest = await argon2.hash(password);
     user.password = passwordDigest;
-    await em.persistAndFlush(user);
+    await user.save();
 
     await redis.del(key);
 
