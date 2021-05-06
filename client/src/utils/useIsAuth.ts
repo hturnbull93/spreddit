@@ -10,5 +10,5 @@ export const useIsAuth = () => {
       router.replace(`/login?next=${router.pathname}`);
     }
   }, [fetching, data, router]);
-  return { fetching };
+  return { isAuth: data?.me, fetching };
 };

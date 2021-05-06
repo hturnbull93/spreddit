@@ -13,11 +13,11 @@ interface CreatePostProps {}
 
 const CreatePost: React.FC<CreatePostProps> = ({}) => {
   const router = useRouter();
-  const { fetching } = useIsAuth();
+  const { isAuth } = useIsAuth();
   const [_data, createPost] = useCreatePostMutation();
   return (
     <Layout variant="small">
-      {fetching ? (
+      {!isAuth ? (
         <Center>
           <Spinner size="xl" />
         </Center>

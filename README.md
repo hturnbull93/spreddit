@@ -3206,11 +3206,11 @@ interface CreatePostProps {}
 
 const CreatePost: React.FC<CreatePostProps> = ({}) => {
   const router = useRouter();
-  const { fetching } = useIsAuth();
+  const { isAuth } = useIsAuth();
   const [_data, createPost] = useCreatePostMutation();
   return (
     <Layout variant="small">
-      {fetching ? (
+      {!isAuth ? (
         <Center>
           <Spinner size="xl" />
         </Center>
@@ -3329,9 +3329,11 @@ export const useIsAuth = () => {
   const router = useRouter();
   const [{ data, fetching }] = useMeQuery();
   useEffect(() => {
-    if (!fetching && !data?.me) router.replace("/login");
+    if (!fetching && !data?.me) {
+      router.replace(`/login?next=${router.pathname}`);
+    }
   }, [fetching, data, router]);
-  return { fetching };
+  return { isAuth: data?.me, fetching };
 };
 ```
 
@@ -3584,3 +3586,5 @@ export class PostResolver {
 ```
 
 The `textSnippet` resolver is a `FieldResolver` for Posts, which needs to be indicated by passing `Post` to the `Resolver` decorator. It takes a `root` which will be the `Post`. It then uses the root post's text and slices it to the nearest space to the 50th character (so a word is not chopped in half). This is a handy way to do virtuals that only need to be exposed over GraphQL.
+
+The `text` field can be swapped for the `textSnippet` in the `posts.graphql` query.
