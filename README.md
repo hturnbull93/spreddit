@@ -3413,3 +3413,31 @@ The login page now needs to read the `next` parameter (if it exists) in order to
       >
       ...
 ```
+
+The `ChangePassword` page accesses the query parameters in a different way using `NextPage`, however using `router` is simpler, so refactored in `client/src/pages/change-password/[token].tsx`:
+
+
+```tsx
+      ...
+      <Formik
+        initialValues={{ password: "" }}
+        onSubmit={async ({ password }, { setErrors }) => {
+          const { token } = router.query;
+          const response = await changePassword({
+            password,
+            token: typeof token === "string" ? token : "",
+          });
+          if (response.data?.changePassword.errors) {
+            const errorMap = toErrorMap(response.data.changePassword.errors);
+            if ("token" in errorMap) setTokenError(errorMap.token);
+            setErrors(errorMap);
+          } else if (response.data?.changePassword.user) {
+            router.push("/");
+          }
+          return response;
+        }}
+      >
+      ...
+```
+
+This removes the need for the `getInitialProps` function, allowing the page to be static and optimised, and having to cast the component as any when using `withUrqlClient`.
