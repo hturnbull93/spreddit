@@ -3369,3 +3369,47 @@ export const createUrqlClient = (ssrExchange: any) => ({
 ```
 
 The `errorExchange` uses `pipe` and `tap` methods from wonka, which is one of URQL's dependencies. This allows what is essentially a middleware to intercept responses before they get back to a component, and in this case, if the error message includes "not authenticated, it uses the Next.js `Router` to move to the login page.
+
+### Smart Redirect After Login
+
+Currently after logging in when sent to the login page after being caught `useIsAuth` the browser is redirected to home. It should redirect to the original page the user was trying to get to. In `client/src/utils/useIsAuth.ts`:
+
+```ts
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+import { useMeQuery } from "../generated/graphql";
+
+export const useIsAuth = () => {
+  const router = useRouter();
+  const [{ data, fetching }] = useMeQuery();
+  useEffect(() => {
+    if (!fetching && !data?.me) {
+      router.replace(`/login?next=${router.pathname}`);
+    }
+  }, [fetching, data, router]);
+  return { fetching };
+};
+```
+
+The login page now needs to read the `next` parameter (if it exists) in order to move to the correct page:
+
+```ts
+      ...
+      <Formik
+        initialValues={{ usernameOrEmail: "", password: "" }}
+        onSubmit={async (values, { setErrors }) => {
+          const response = await login(values);
+          if (response.data?.login.errors) {
+            setErrors(toErrorMap(response.data.login.errors));
+          } else if (response.data?.login.user) {
+            if (typeof router?.query?.next === "string") {
+              router.push(router?.query?.next);
+            } else {
+              router.push("/");
+            }
+          }
+          return response;
+        }}
+      >
+      ...
+```
