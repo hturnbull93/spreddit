@@ -76,6 +76,7 @@ export type Post = {
   text: Scalars["String"];
   points: Scalars["Int"];
   creatorId: Scalars["Int"];
+  textSnippet: Scalars["String"];
 };
 
 export type PostInput = {
@@ -207,7 +208,7 @@ export type PostsQuery = { __typename?: "Query" } & {
       | "createdAt"
       | "updatedAt"
       | "title"
-      | "text"
+      | "textSnippet"
       | "points"
       | "creatorId"
     >
@@ -342,7 +343,7 @@ export const PostsDocument = gql`
       createdAt
       updatedAt
       title
-      text
+      textSnippet
       points
       creatorId
     }
