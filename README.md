@@ -3336,3 +3336,36 @@ export const useIsAuth = () => {
 ```
 
 It returns `fetching` on an object, which `CreatePost` uses to render a loading spinner to prevent the form from being rendered until it is confirmed the user is logged in.
+
+### Global Authentication Error Handling
+
+On many GraphQL queries there may be the possibility of getting an `AUTHENTICATION_ERROR` from the `isAuth` middleware. Rather than handling this in all components that might encounter it, it can be handled globally with an error exchange. In `client/src/utils/createUrqlClient.ts`:
+
+```ts
+import { dedupExchange, Exchange, fetchExchange } from "urql";
+import { pipe, tap } from "wonka";
+...
+import Router from "next/router";
+
+const errorExchange: Exchange = ({ forward }) => (ops$) => {
+  return pipe(
+    forward(ops$),
+    tap(({ error }) => {
+      if (error?.message.includes("not authenticated")) {
+        Router.replace("/login");
+      }
+    }),
+  );
+};
+
+export const createUrqlClient = (ssrExchange: any) => ({
+  ...
+  exchanges: [
+    ...
+    errorExchange,
+    ...
+  ],
+});
+```
+
+The `errorExchange` uses `pipe` and `tap` methods from wonka, which is one of URQL's dependencies. This allows what is essentially a middleware to intercept responses before they get back to a component, and in this case, if the error message includes "not authenticated, it uses the Next.js `Router` to move to the login page.
