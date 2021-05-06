@@ -4,7 +4,7 @@ import { withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
 import { Box } from "@chakra-ui/layout";
 import { Button } from "@chakra-ui/react";
-import Wrapper from "../components/Wrapper";
+import Layout from "../components/Layout";
 import InputField from "../components/InputField";
 import { useLoginMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
@@ -16,7 +16,7 @@ const Login: React.FC<LoginProps> = ({}) => {
   const router = useRouter();
   const [_data, login] = useLoginMutation();
   return (
-    <Wrapper variant="small">
+    <Layout variant="small">
       <Formik
         initialValues={{ usernameOrEmail: "", password: "" }}
         onSubmit={async (values, { setErrors }) => {
@@ -67,7 +67,7 @@ const Login: React.FC<LoginProps> = ({}) => {
           </Form>
         )}
       </Formik>
-    </Wrapper>
+    </Layout>
   );
 };
 
