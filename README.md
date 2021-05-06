@@ -3185,3 +3185,154 @@ export class PostResolver {
 ```
 
 The `createPost` resolver takes input types with `PostInput`, and uses the `isAuth` middleware with the TypeGraphQL decorator `UseMiddleware`. Given that `isAuth` does not throw an error, we can guarantee the `userId` is on the `session`, and pass it as the post's `creatorId`.
+
+### Create Post Page
+
+In `client/src/pages/create-post.tsx`:
+
+```tsx
+import { Box, Button, Center, Spinner } from "@chakra-ui/react";
+import { Formik, Form } from "formik";
+import { withUrqlClient } from "next-urql";
+import { useRouter } from "next/router";
+import React from "react";
+import InputField from "../components/InputField";
+import Layout from "../components/Layout";
+import { useCreatePostMutation } from "../generated/graphql";
+import { createUrqlClient } from "../utils/createUrqlClient";
+import { useIsAuth } from "../utils/useIsAuth";
+
+interface CreatePostProps {}
+
+const CreatePost: React.FC<CreatePostProps> = ({}) => {
+  const router = useRouter();
+  const { fetching } = useIsAuth();
+  const [_data, createPost] = useCreatePostMutation();
+  return (
+    <Layout variant="small">
+      {fetching ? (
+        <Center>
+          <Spinner size="xl" />
+        </Center>
+      ) : (
+        <Formik
+          initialValues={{ title: "", text: "" }}
+          onSubmit={async (values) => {
+            const { error } = await createPost({ input: values });
+            if (!error) {
+              router.push("/");
+            }
+          }}
+        >
+          {({ isSubmitting }) => (
+            <Form>
+              <InputField name="title" placeholder="title" label="Title" />
+              <Box mt={4}>
+                <InputField
+                  name="text"
+                  placeholder="text..."
+                  label="Body"
+                  textArea
+                />
+              </Box>
+              <Button
+                mt={4}
+                isLoading={isSubmitting}
+                type="submit"
+                colorScheme="teal"
+              >
+                Create post
+              </Button>
+            </Form>
+          )}
+        </Formik>
+      )}
+    </Layout>
+  );
+};
+
+export default withUrqlClient(createUrqlClient)(CreatePost);
+```
+
+The `CreatePost` component renders a form to create a post, using `useCreatePostMutation` generated from the mutation in `client/src/graphql/mutations/createPost.graphql`. It also uses the new `Layout` component, which incorporates the `NavBar` with `Wrapper`, using a untion type `WrapperVariant` from `Wrapper`:
+
+```tsx
+import React from "react";
+import NavBar from "./NavBar";
+import Wrapper, { WrapperVariant } from "./Wrapper";
+
+interface LayoutProps {
+  variant?: WrapperVariant;
+}
+
+const Layout: React.FC<LayoutProps> = ({ variant, children }) => {
+  return (
+    <>
+      <NavBar />
+      <Wrapper variant={variant}>{children}</Wrapper>
+    </>
+  );
+};
+
+export default Layout;
+```
+
+The `InputField` component now takes the prop `textArea` which allows it to render a Textarea instead of a regular input. The `InputFieldProps` type uses an extended interface for the generic to allow this to work:
+
+```tsx
+import React, { InputHTMLAttributes } from "react";
+import { useField } from "formik";
+import {
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
+} from "@chakra-ui/form-control";
+import { Input } from "@chakra-ui/input";
+import { Textarea } from "@chakra-ui/textarea";
+
+type InputFieldProps = InputHTMLAttributes<
+  HTMLInputElement & HTMLTextAreaElement
+> & {
+  label: string;
+  name: string;
+  textArea?: boolean;
+};
+
+const InputField: React.FC<InputFieldProps> = ({
+  label,
+  size: _size,
+  textArea,
+  ...props
+}) => {
+  let InputOrTextarea = textArea ? Textarea : Input;
+  const [field, { error }] = useField(props);
+  return (
+    <FormControl isInvalid={!!error}>
+      <FormLabel htmlFor={field.name}>{label}</FormLabel>
+      <InputOrTextarea {...field} {...props} id={field.name} />
+      {error && <FormErrorMessage>{error}</FormErrorMessage>}
+    </FormControl>
+  );
+};
+
+export default InputField;
+```
+
+`CreatePost` uses the `textArea` prop for the post body. It also uses `useIsAuth`, a custom hook to check if the user is logged in with `useMeQuery`, and if not, move them to the login page. In `client/src/utils/useIsAuth.ts`:
+
+```ts
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+import { useMeQuery } from "../generated/graphql";
+
+export const useIsAuth = () => {
+  const router = useRouter();
+  const [{ data, fetching }] = useMeQuery();
+  useEffect(() => {
+    if (!fetching && !data?.me) router.replace("/login");
+  }, [fetching, data, router]);
+  return { fetching };
+};
+```
+
+It returns `fetching` on an object, which `CreatePost` uses to render a loading spinner to prevent the form from being rendered until it is confirmed the user is logged in.
