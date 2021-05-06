@@ -3153,3 +3153,35 @@ export const isAuth: MiddlewareFn<ApolloContext> = ({ context }, next) => {
 ```
 
 The `isAuth` function is typed as a `MiddlewareFn`, being passed a generic for the context using `ApolloContext`. Middleware functions have access to each of the context, args, info, and root query to do whatever they please with. The second arg is `next`, the function that passes along to the next middleware. From the context, if there is no `userId` throw an `AUTHENTICATION_ERROR` from `constants`. If not, return the call of `next`.
+
+Now in the `PostResolver`:
+
+```ts
+@InputType()
+class PostInput {
+  @Field()
+  title: string;
+
+  @Field()
+  text: string;
+}
+
+@Resolver()
+export class PostResolver {
+  ...
+  @Mutation(() => Post)
+  @UseMiddleware(isAuth)
+  createPost(
+    @Arg("input") input: PostInput,
+    @Ctx() { req }: ApolloContext,
+  ): Promise<Post> {
+    return Post.create({
+      ...input,
+      creatorId: req.session.userId,
+    }).save();
+  }
+  ...
+}
+```
+
+The `createPost` resolver takes input types with `PostInput`, and uses the `isAuth` middleware with the TypeGraphQL decorator `UseMiddleware`. Given that `isAuth` does not throw an error, we can guarantee the `userId` is on the `session`, and pass it as the post's `creatorId`.
