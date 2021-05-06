@@ -4,6 +4,7 @@ import {
   Ctx,
   Field,
   InputType,
+  Int,
   Mutation,
   Query,
   Resolver,
@@ -24,8 +25,21 @@ class PostInput {
 @Resolver()
 export class PostResolver {
   @Query(() => [Post])
-  posts(): Promise<Post[]> {
-    return Post.find();
+  posts(
+    @Arg("limit", () => Int) limit: number,
+    @Arg("cursor", () => String, { nullable: true }) cursor: string,
+  ): Promise<Post[]> {
+    const upperLimit = Math.min(50, limit);
+    const query = Post.getRepository()
+      .createQueryBuilder()
+      .orderBy('"createdAt"', "DESC")
+      .take(upperLimit);
+    if (cursor) {
+      query.where('"createdAt" < :cursor', {
+        cursor: new Date(parseInt(cursor)),
+      });
+    }
+    return query.getMany();
   }
 
   @Query(() => Post, { nullable: true })

@@ -3441,3 +3441,62 @@ The `ChangePassword` page accesses the query parameters in a different way using
 ```
 
 This removes the need for the `getInitialProps` function, allowing the page to be static and optimised, and having to cast the component as any when using `withUrqlClient`.
+
+### Paginating Posts
+
+Posts should be paginated using cursor based pagination, rather than using limit/offset. In an app where the paginated items are updated and added to quickly, the offset may not remain accurate and the pages will begin to slide about.
+
+In the `PostResolver`:
+
+```ts
+  ...
+  @Query(() => [Post])
+  posts(
+    @Arg("limit", () => Int) limit: number,
+    @Arg("cursor", () => String, { nullable: true }) cursor: string,
+  ): Promise<Post[]> {
+    const upperLimit = Math.min(50, limit);
+    const query = Post.getRepository()
+      .createQueryBuilder()
+      .orderBy('"createdAt"', "DESC")
+      .take(upperLimit);
+    if (cursor) {
+      query.where('"createdAt" < :cursor', {
+        cursor: new Date(parseInt(cursor)),
+      });
+    }
+    return query.getMany();
+  }
+  ...
+```
+
+The `posts` query takes a `limit` and a `cursor`. It imposes an `upperLimit` of 50, regardless of the passed `limit`. A query is built from the Post repository, ordering by `createdAt` descending. Note that `'"createdAt"'` is wrapped in both quotes to cause Postgresql to maintain the capital A. If there is a cursor, the `where` method is used to find posts that have a `createdAt` smaller than the `cursor`, which is parsed from a string to an integer then to a date, which is inserted into the raw SQL using a [parameter](https://typeorm.io/#select-query-builder/using-parameters-to-escape-data). Finally return the `getMany` call.
+
+It is possible to write an alternate implementation using the `find` method, which generates identical SQL:
+
+```ts
+import { LessThan } from "typeorm";
+
+  ...
+  @Query(() => [Post])
+  posts(
+    @Arg("limit", () => Int) limit: number,
+    @Arg("cursor", () => String, { nullable: true }) cursor: string,
+  ): Promise<Post[]> {
+    const upperLimit = Math.min(50, limit);
+    return Post.find({
+      take: upperLimit,
+      order: {
+        createdAt: "DESC",
+      },
+      where: cursor
+        ? { createdAt: LessThan(new Date(parseInt(cursor))) }
+        : undefined,
+    });
+  }
+  ...
+```
+
+However, I will stick with the query builder, as I am less familiar with using that style of querying, and it seems easier to chain in optional parts of the query.
+
+The cursor essentially finds any posts that were created before the `createdAt` that is used as the cursor. To get the next page, simply use the `createdAt` of the last post on the page you are on.
