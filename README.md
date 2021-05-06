@@ -3500,3 +3500,21 @@ import { LessThan } from "typeorm";
 However, I will stick with the query builder, as I am less familiar with using that style of querying, and it seems easier to chain in optional parts of the query.
 
 The cursor essentially finds any posts that were created before the `createdAt` that is used as the cursor. To get the next page, simply use the `createdAt` of the last post on the page you are on.
+
+In `client/src/graphql/queries/posts.graphql` the query is updated to take the new parameters:
+
+```graphql
+query Posts($limit: Int!, $cursor: String) {
+  posts(limit: $limit, cursor: $cursor) {
+    id
+    createdAt
+    updatedAt
+    title
+    text
+    points
+    creatorId
+  }
+}
+```
+
+And the types are regenerated.

@@ -42,7 +42,7 @@ export type MutationCreatePostArgs = {
 
 export type MutationUpdatePostArgs = {
   id: Scalars["Float"];
-  input?: Maybe<Scalars["String"]>;
+  input: PostInput;
 };
 
 export type MutationDeletePostArgs = {
@@ -88,6 +88,11 @@ export type Query = {
   posts: Array<Post>;
   post?: Maybe<Post>;
   me?: Maybe<User>;
+};
+
+export type QueryPostsArgs = {
+  cursor?: Maybe<Scalars["String"]>;
+  limit: Scalars["Int"];
 };
 
 export type QueryPostArgs = {
@@ -189,13 +194,22 @@ export type MeQuery = { __typename?: "Query" } & {
   me?: Maybe<{ __typename?: "User" } & RegularUserFragment>;
 };
 
-export type PostsQueryVariables = Exact<{ [key: string]: never }>;
+export type PostsQueryVariables = Exact<{
+  limit: Scalars["Int"];
+  cursor?: Maybe<Scalars["String"]>;
+}>;
 
 export type PostsQuery = { __typename?: "Query" } & {
   posts: Array<
     { __typename?: "Post" } & Pick<
       Post,
-      "id" | "createdAt" | "updatedAt" | "title"
+      | "id"
+      | "createdAt"
+      | "updatedAt"
+      | "title"
+      | "text"
+      | "points"
+      | "creatorId"
     >
   >;
 };
@@ -322,12 +336,15 @@ export function useMeQuery(
   return Urql.useQuery<MeQuery>({ query: MeDocument, ...options });
 }
 export const PostsDocument = gql`
-  query Posts {
-    posts {
+  query Posts($limit: Int!, $cursor: String) {
+    posts(limit: $limit, cursor: $cursor) {
       id
       createdAt
       updatedAt
       title
+      text
+      points
+      creatorId
     }
   }
 `;
