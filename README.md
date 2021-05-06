@@ -3133,3 +3133,23 @@ In `server/src/entities/User.ts` the inverse relationship is added:
 ```
 
 The `OneToMany` decorator defines the fact that the `User` can have many posts, where the foreign key is the `post.creator`.
+
+### Linking User to Posts on Creation
+
+Now to create a post a user must be logged in, so their userId can be added as the post's creatorId.
+
+To guarantee a user is logged in, TypeGraphQL middleware can be used. In `server/src/middleware/isAuth.ts`:
+
+```ts
+import { MiddlewareFn } from "type-graphql";
+import { AUTHENTICATION_ERROR } from "../constants";
+import { ApolloContext } from "../types";
+
+export const isAuth: MiddlewareFn<ApolloContext> = ({ context }, next) => {
+  if (!context.req.session.userId) throw new Error(AUTHENTICATION_ERROR);
+
+  return next();
+};
+```
+
+The `isAuth` function is typed as a `MiddlewareFn`, being passed a generic for the context using `ApolloContext`. Middleware functions have access to each of the context, args, info, and root query to do whatever they please with. The second arg is `next`, the function that passes along to the next middleware. From the context, if there is no `userId` throw an `AUTHENTICATION_ERROR` from `constants`. If not, return the call of `next`.
