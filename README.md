@@ -3518,3 +3518,50 @@ query Posts($limit: Int!, $cursor: String) {
 ```
 
 And the types are regenerated.
+
+### Seeding Post Data
+
+Using [Mockaroo](https://mockaroo.com/) generate some posts, and download the SQL.
+
+Create a migration to insert the mock data:
+
+```shell
+npx typeorm migration:create -n FakePosts
+```
+
+Then in the migration: 
+
+```ts
+import { MigrationInterface, QueryRunner } from "typeorm";
+
+export class FakePosts1620336116681 implements MigrationInterface {
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
+        ... SQL from Mockaroo here ...
+    `);
+  }
+
+  public async down(): Promise<void> {}
+}
+```
+
+Then the migration can be run by adding the following to `server/src/index.ts`:
+
+```ts
+const main = async () => {
+  const conn = await createConnection(typeormConfig);
+  await conn.runMigrations();
+  ...
+};
+```
+
+This instructs the connection to run the migrations, the path to which is specified in the `typeormConfig` migrations array:
+
+```ts
+import path from "path";
+
+const typeormConfig: ConnectionOptions = {
+  ...
+  migrations: [path.join(__dirname, "./migrations/*")],
+};
+```
