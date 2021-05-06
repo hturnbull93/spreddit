@@ -3565,3 +3565,22 @@ const typeormConfig: ConnectionOptions = {
   migrations: [path.join(__dirname, "./migrations/*")],
 };
 ```
+
+### Displaying Snippets of Posts
+
+The full text of a post could be quite long and doesn't need to be shown on the Posts page, instead a snippet should be sent.
+
+In the PostResolver:
+
+```ts
+@Resolver(Post)
+export class PostResolver {
+  @FieldResolver(() => String)
+  textSnippet(@Root() root: Post) {
+    return root.text.slice(0, root.text.indexOf(" ", 50));
+  }
+  ...
+}
+```
+
+The `textSnippet` resolver is a `FieldResolver` for Posts, which needs to be indicated by passing `Post` to the `Resolver` decorator. It takes a `root` which will be the `Post`. It then uses the root post's text and slices it to the nearest space to the 50th character (so a word is not chopped in half). This is a handy way to do virtuals that only need to be exposed over GraphQL.
