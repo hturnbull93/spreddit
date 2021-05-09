@@ -3901,3 +3901,65 @@ export class UserResolver {
 ```
 
 `User` is passed to the `Resolver` decorator to let it know what the `Root` should be. If the `userId` matches the session, they can have their own email address, otherwise send an empty string.
+
+### Votes on Posts
+
+A user can vote on many posts, which can be voted on by many users so a many to many relationship. There will need to be a join table to keep track of which users have voted on which posts. In `server/src/entities/Vote.ts`:
+
+```ts
+import { Entity, Column, BaseEntity, ManyToOne, PrimaryColumn } from "typeorm";
+import { Field, Int, ObjectType } from "type-graphql";
+import { User } from "./User";
+import { Post } from "./Post";
+
+@ObjectType()
+@Entity()
+export class Vote extends BaseEntity {
+  @Field(() => Int)
+  @Column({ type: "int" })
+  value: number;
+
+  @Field(() => Int)
+  @PrimaryColumn()
+  userId!: number;
+
+  @Field(() => User)
+  @ManyToOne(() => User, (user) => user.votes)
+  user: User;
+
+  @Field(() => Int)
+  @PrimaryColumn()
+  postId!: number;
+
+  @Field(() => Post)
+  @ManyToOne(() => Post, (post) => post.votes)
+  post: Post;
+}
+```
+
+`value` will either be 1 or -1 depending on if the vote is an upvote or downvote.
+
+The votes are linked with a one to many relationship on both the `Post`: 
+
+```ts
+@ObjectType()
+@Entity()
+export class Post extends BaseEntity {
+   ...
+  @OneToMany(() => Vote, (vote) => vote.post)
+  votes: Vote[];
+}
+```
+
+And the `User`:
+
+```tsx
+@ObjectType()
+@Entity()
+export class User extends BaseEntity {
+  ...
+  @OneToMany(() => Vote, (vote) => vote.user)
+  votes: Vote[];
+}
+```
+

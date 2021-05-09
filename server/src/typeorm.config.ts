@@ -1,7 +1,5 @@
 import { ConnectionOptions } from "typeorm";
 import { DB_PASS, DB_USER } from "./constants";
-import { Post } from "./entities/Post";
-import { User } from "./entities/User";
 import path from "path";
 
 const typeormConfig: ConnectionOptions = {
@@ -11,7 +9,7 @@ const typeormConfig: ConnectionOptions = {
   password: DB_PASS,
   logging: true,
   synchronize: true,
-  entities: [Post, User],
+  entities: [path.join(__dirname, "./entities/*")],
   migrations: [path.join(__dirname, "./migrations/*")],
 };
 
