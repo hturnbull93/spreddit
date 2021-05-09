@@ -1,6 +1,11 @@
-import { dedupExchange, Exchange, fetchExchange } from "urql";
+import {
+  dedupExchange,
+  Exchange,
+  fetchExchange,
+  stringifyVariables,
+} from "urql";
 import { pipe, tap } from "wonka";
-import { cacheExchange } from "@urql/exchange-graphcache";
+import { cacheExchange, Resolver } from "@urql/exchange-graphcache";
 import {
   LoginMutation,
   MeQuery,
@@ -23,6 +28,37 @@ const errorExchange: Exchange = ({ forward }) => (ops$) => {
   );
 };
 
+export const cursorPagination = (__typename: string): Resolver => {
+  return (_parent, fieldArgs, cache, info) => {
+    const { parentKey: entityKey, fieldName } = info;
+
+    const allFields = cache.inspectFields(entityKey);
+    const fieldInfos = allFields.filter((info) => info.fieldName === fieldName);
+    if (!fieldInfos.length) return undefined;
+
+    const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
+    const isInCache = !!cache.resolve(
+      cache.resolve(entityKey, fieldKey) as string,
+      fieldName,
+    );
+    info.partial = !isInCache;
+
+    return fieldInfos.reduce(
+      (prev, fi) => {
+        console.log(`fi.fieldKey`, fi.fieldKey);
+        const key = cache.resolve(entityKey, fi.fieldKey) as string;
+        const data = cache.resolve(key, fieldName) as string[];
+        const hasMore = cache.resolve(key, "hasMore");
+
+        if (!hasMore) prev.hasMore = false;
+        prev[fieldName].push(...data);
+        return prev;
+      },
+      { [fieldName]: [], hasMore: true, __typename } as any,
+    );
+  };
+};
+
 export const createUrqlClient = (ssrExchange: any) => ({
   url: "http://localhost:4000/graphql",
   fetchOptions: {
@@ -31,6 +67,14 @@ export const createUrqlClient = (ssrExchange: any) => ({
   exchanges: [
     dedupExchange,
     cacheExchange({
+      keys: {
+        PaginatedPosts: () => null,
+      },
+      resolvers: {
+        Query: {
+          posts: cursorPagination("PaginatedPosts"),
+        },
+      },
       updates: {
         Mutation: {
           login: (result, _args, cache, _info) => {

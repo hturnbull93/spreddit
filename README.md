@@ -3737,3 +3737,60 @@ export default withUrqlClient(createUrqlClient, { ssr: true })(Index);
 ```
 
 The `Index` component renders a set of cards constructed from Chakra components, with the post `title` and `textSnippet`. If `hasMore` is true, a button to load more is rendered. It's click handler updates the cursor variable to the `createdAt` of the last post of the page. When the variables are change, the posts query triggers again. This replaces the existing post data however. There are two methods to add them rather than prevent them being overwritten: store the posts in state and add to them as they arrive, or write a custom resolver to add them to the cache.
+
+### Custom Resolver for Cursor Pagination
+
+In `client/src/utils/createUrqlClient.ts`:
+
+```ts
+...
+export const cursorPagination = (__typename: string): Resolver => {
+  return (_parent, fieldArgs, cache, info) => {
+    const { parentKey: entityKey, fieldName } = info;
+
+    const allFields = cache.inspectFields(entityKey);
+    const fieldInfos = allFields.filter((info) => info.fieldName === fieldName);
+    if (!fieldInfos.length) return undefined;
+
+    const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
+    const isInCache = !!cache.resolve(
+      cache.resolve(entityKey, fieldKey) as string,
+      fieldName,
+    );
+    info.partial = !isInCache;
+
+    return fieldInfos.reduce(
+      (prev, fi) => {
+        const key = cache.resolve(entityKey, fi.fieldKey) as string;
+        const data = cache.resolve(key, fieldName) as string[];
+        const hasMore = cache.resolve(key, "hasMore");
+
+        if (!hasMore) prev.hasMore = false;
+        prev[fieldName].push(...data);
+        return prev;
+      },
+      { [fieldName]: [], hasMore: true, __typename } as any,
+    );
+  };
+};
+
+export const createUrqlClient = (ssrExchange: any) => ({
+  ...
+  exchanges: [
+    cacheExchange({
+      keys: {
+        PaginatedPosts: () => null,
+      },
+      resolvers: {
+        Query: {
+          posts: cursorPagination("PaginatedPosts"),
+        },
+      },
+      ...
+    }),
+    ...
+   ],
+});
+```
+
+Here the `cursorPagination` function returns a `Resolver` function, that is used for the posts query. It takes a `__typename` for reusability. First `fieldName` and `entityKey` are taken off the `info`. These are `posts` and `Query` respectively. Then, the cache is inspected to find cached fields that have the same `fieldName` as the `info` `fieldName`. If there are none, undefined is returned. Then a `fieldKey` is constructed using the `fieldName` and `stringifyVariables` from URQL with `fieldArgs`, producing `posts({"limit":10})`. This is used to resolve whether or not there is anything in the cache already. `info.partial` is set to true if there is nothing in the cache. Then, the cached fieldInfos are reduced through, resolving their own specific keys from the cache, which have the cursor for that call e.g. `posts({"cursor":"1618573184000","limit":10})`. Each the data and `hasMore` for each cached call is resolved, finally returning an object with all posts cached so far, the passed `__typename` and if any of them had false for `hasMore`.
