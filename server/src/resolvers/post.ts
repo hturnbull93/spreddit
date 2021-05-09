@@ -4,6 +4,7 @@ import {
   Ctx,
   Field,
   FieldResolver,
+  Info,
   InputType,
   Int,
   Mutation,
@@ -15,6 +16,7 @@ import {
 } from "type-graphql";
 import { ApolloContext } from "../types";
 import { isAuth } from "../middleware/isAuth";
+import { getConnection } from "typeorm";
 
 @InputType()
 class PostInput {
@@ -49,16 +51,29 @@ export class PostResolver {
     const upperLimit = Math.min(50, limit);
     const upperLimitPlusOne = upperLimit + 1;
 
-    const query = Post.getRepository()
-      .createQueryBuilder()
-      .orderBy('"createdAt"', "DESC")
-      .take(upperLimitPlusOne);
+    const replacements: any[] = [upperLimitPlusOne];
     if (cursor) {
-      query.where('"createdAt" < :cursor', {
-        cursor: new Date(parseInt(cursor)),
-      });
+      replacements.push(new Date(parseInt(cursor)));
     }
-    const posts = await query.getMany();
+
+    const posts = await getConnection().query(
+      `
+      SELECT p.*,
+      json_build_object(
+        'id', u.id,
+        'username', u.username,
+        'email', u.email,
+        'createdAt', u."createdAt",
+        'updatedAt', u."updatedAt"
+      ) creator
+      FROM post p
+      INNER JOIN public.user u ON u.id = p."creatorId"
+      ${cursor ? `WHERE p."createdAt" < $2` : ""}
+      ORDER BY p."createdAt" DESC
+      LIMIT $1
+      `,
+      replacements,
+    );
 
     let hasMore = false;
     if (posts.length === upperLimitPlusOne) {

@@ -3794,3 +3794,90 @@ export const createUrqlClient = (ssrExchange: any) => ({
 ```
 
 Here the `cursorPagination` function returns a `Resolver` function, that is used for the posts query. It takes a `__typename` for reusability. First `fieldName` and `entityKey` are taken off the `info`. These are `posts` and `Query` respectively. Then, the cache is inspected to find cached fields that have the same `fieldName` as the `info` `fieldName`. If there are none, undefined is returned. Then a `fieldKey` is constructed using the `fieldName` and `stringifyVariables` from URQL with `fieldArgs`, producing `posts({"limit":10})`. This is used to resolve whether or not there is anything in the cache already. `info.partial` is set to true if there is nothing in the cache. Then, the cached fieldInfos are reduced through, resolving their own specific keys from the cache, which have the cursor for that call e.g. `posts({"cursor":"1618573184000","limit":10})`. Each the data and `hasMore` for each cached call is resolved, finally returning an object with all posts cached so far, the passed `__typename` and if any of them had false for `hasMore`.
+
+### Joining Users to Posts
+
+To get the creator of the post, the tables need to be joined in `PostsResolver.posts`:
+
+```tsx
+  @Query(() => PaginatedPosts)
+  async posts(
+    @Arg("limit", () => Int) limit: number,
+    @Arg("cursor", () => String, { nullable: true }) cursor: string,
+  ): Promise<PaginatedPosts> {
+    const upperLimit = Math.min(50, limit);
+    const upperLimitPlusOne = upperLimit + 1;
+
+    const query = Post.getRepository()
+      .createQueryBuilder("post")
+      .innerJoinAndSelect("post.creator", "user", 'post."creatorId" = user.id')
+      .orderBy("post.createdAt", "DESC")
+      .take(upperLimitPlusOne);
+    if (cursor) {
+      query.where('post."createdAt" < :cursor', {
+        cursor: new Date(parseInt(cursor)),
+      });
+    }
+    const posts = await query.getMany();
+
+    let hasMore = false;
+    if (posts.length === upperLimitPlusOne) {
+      hasMore = true;
+      posts.pop();
+    }
+
+    return { posts, hasMore };
+  }
+```
+
+Here the `innerJoinAndSelect` method links the `post.creator` from the `user` table by mapping `post."creatorId" = user.id`.
+
+*Note that some quirk requires the `orderBy` to not quote around `post.createdAt` referring to the property name, rather than the column name. I am not exactly sure why, but it works.*
+
+There is an alternate way to make this query using raw SQL:
+
+
+```tsx
+  @Query(() => PaginatedPosts)
+  async posts(
+    @Arg("limit", () => Int) limit: number,
+    @Arg("cursor", () => String, { nullable: true }) cursor: string,
+  ): Promise<PaginatedPosts> {
+    const upperLimit = Math.min(50, limit);
+    const upperLimitPlusOne = upperLimit + 1;
+
+    const replacements: any[] = [upperLimitPlusOne];
+    if (cursor) {
+      replacements.push(new Date(parseInt(cursor)));
+    }
+
+    const posts = await getConnection().query(
+      `
+      SELECT p.*,
+      json_build_object(
+        'id', u.id,
+        'username', u.username,
+        'email', u.email,
+        'createdAt', u."createdAt",
+        'updatedAt', u."updatedAt"
+      ) creator
+      FROM post p
+      INNER JOIN public.user u ON u.id = p."creatorId"
+      ${cursor ? `WHERE p."createdAt" < $2` : ""}
+      ORDER BY p."createdAt" DESC
+      LIMIT $1
+      `,
+      replacements,
+    );
+
+    let hasMore = false;
+    if (posts.length === upperLimitPlusOne) {
+      hasMore = true;
+      posts.pop();
+    }
+
+    return { posts, hasMore };
+  }
+```
+
+`query` allows any SQL to be sent, which can be parameterised using `$`. I will use this version for now, as I am less familiar and it will help me brush up on my SQL.
