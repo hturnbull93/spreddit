@@ -3881,3 +3881,23 @@ There is an alternate way to make this query using raw SQL:
 ```
 
 `query` allows any SQL to be sent, which can be parameterised using `$`. I will use this version for now, as I am less familiar and it will help me brush up on my SQL.
+
+### Guarding Email Addresses
+
+Currently a creator's email is exposed, however, a `FieldResolver` can be used to check if the current user is the user being resolved, or not:
+
+```ts
+@Resolver(User)
+export class UserResolver {
+  @FieldResolver(() => String)
+  email(@Root() user: User, @Ctx() { req }: ApolloContext) {
+    if (req.session.userId === user.id) {
+      return user.email;
+    }
+    return "";
+  }
+  ...
+}
+```
+
+`User` is passed to the `Resolver` decorator to let it know what the `Root` should be. If the `userId` matches the session, they can have their own email address, otherwise send an empty string.
