@@ -3588,3 +3588,73 @@ export class PostResolver {
 The `textSnippet` resolver is a `FieldResolver` for Posts, which needs to be indicated by passing `Post` to the `Resolver` decorator. It takes a `root` which will be the `Post`. It then uses the root post's text and slices it to the nearest space to the 50th character (so a word is not chopped in half). This is a handy way to do virtuals that only need to be exposed over GraphQL.
 
 The `text` field can be swapped for the `textSnippet` in the `posts.graphql` query.
+
+### Better Post Pagination
+
+At the moment the posts are loaded, but it is not known if there are any more posts to be loaded on the next page. In the `PostsResolver`:
+
+
+```ts
+@ObjectType()
+class PaginatedPosts {
+  @Field(() => [Post])
+  posts: Post[];
+
+  @Field()
+  hasMore: boolean;
+}
+
+@Resolver(Post)
+export class PostResolver {
+   ...
+  @Query(() => PaginatedPosts)
+  async posts(
+    @Arg("limit", () => Int) limit: number,
+    @Arg("cursor", () => String, { nullable: true }) cursor: string,
+  ): Promise<PaginatedPosts> {
+    const upperLimit = Math.min(50, limit);
+    const upperLimitPlusOne = upperLimit + 1;
+
+    const query = Post.getRepository()
+      .createQueryBuilder()
+      .orderBy('"createdAt"', "DESC")
+      .take(upperLimitPlusOne);
+    if (cursor) {
+      query.where('"createdAt" < :cursor', {
+        cursor: new Date(parseInt(cursor)),
+      });
+    }
+    const posts = await query.getMany();
+
+    let hasMore = false;
+    if (posts.length === upperLimitPlusOne) {
+      hasMore = true;
+      posts.pop();
+    }
+
+    return { posts, hasMore };
+  }
+  ...
+}
+```
+
+The `posts` resolver returns a new type, `PaginatedPosts` which has the `posts` array, and also a `hasMore` boolean. The `upperLimitPlusOne` is used to fetch one more than the number of posts asked for. Then, if there were a number of posts found equal to `upperLimitPlusOne`, it indicates there are in fact more to go. The extra post is removed from the array, and returned. 
+
+This new structure is reflected in the `posts.graphql` query: 
+
+```graphql
+query Posts($limit: Int!, $cursor: String) {
+  posts(limit: $limit, cursor: $cursor) {
+    posts {
+      id
+      createdAt
+      updatedAt
+      title
+      textSnippet
+      points
+      creatorId
+    }
+    hasMore
+  }
+}
+```
