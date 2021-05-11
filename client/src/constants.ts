@@ -1,0 +1,1 @@
+export const POSTS_PAGINATION_LIMIT = 10;
