@@ -2,6 +2,7 @@ import {
   dedupExchange,
   Exchange,
   fetchExchange,
+  gql,
   stringifyVariables,
 } from "urql";
 import { pipe, tap } from "wonka";
@@ -13,9 +14,11 @@ import {
   RegisterMutation,
   LogoutMutation,
   ChangePasswordMutation,
+  VoteMutationVariables,
 } from "../generated/graphql";
 import { typedUpdateQuery } from "./typedUpdateQuery";
 import Router from "next/router";
+import { isServer } from "./isServer";
 
 const errorExchange: Exchange = ({ forward }) => (ops$) => {
   return pipe(
@@ -140,6 +143,34 @@ export const createUrqlClient = (ssrExchange: any) => ({
             fieldInfos.forEach((fi) => {
               cache.invalidate("Query", "posts", fi.arguments || {});
             });
+          },
+          vote: (_result, args, cache, _info) => {
+            const { postId, value } = args as VoteMutationVariables;
+            const data = cache.readFragment(
+              gql`
+                fragment __ on Post {
+                  id
+                  points
+                  voteStatus
+                }
+              `,
+              { id: postId },
+            );
+            if (data) {
+              if (data.voteStatus === value) return;
+
+              const adjustedValue = !data.voteStatus ? value : 2 * value;
+              const newPoints = (data.points as number) + adjustedValue;
+              cache.writeFragment(
+                gql`
+                  fragment __ on Post {
+                    points
+                    voteStatus
+                  }
+                `,
+                { id: postId, points: newPoints, voteStatus: value },
+              );
+            }
           },
         },
       },

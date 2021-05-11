@@ -4262,3 +4262,65 @@ export default PostCard;
 The `formatDistanceToNow` function from `date-fns` is used to give human readable relative estimate of the time since the post was created.
 
 `PostCard` is rendered in `Index`, mapping through the posts fetched.
+
+When a vote button is clicked, this can be updated in the cache to reflect the new points total, with a cache update handler for the `vote` mutation in `client/src/utils/createUrqlClient.ts`:
+
+```ts
+import {
+  ...
+  gql,
+} from "urql";
+...
+import {
+  ...,
+  VoteMutationVariables,
+} from "../generated/graphql";
+...
+
+export const createUrqlClient = (ssrExchange: any) => ({
+  ...
+  exchanges: [
+    ...
+    cacheExchange({
+      ...
+      updates: {
+        Mutation: {
+          ...
+          vote: (_result, args, cache, _info) => {
+            const { postId, value } = args as VoteMutationVariables;
+            const data = cache.readFragment(
+              gql`
+                fragment __ on Post {
+                  id
+                  points
+                  voteStatus
+                }
+              `,
+              { id: postId },
+            );
+            if (data) {
+              if (data.voteStatus === value) return;
+
+              const adjustedValue = !data.voteStatus ? value : 2 * value;
+              const newPoints = (data.points as number) + adjustedValue;
+              cache.writeFragment(
+                gql`
+                  fragment __ on Post {
+                    points
+                    voteStatus
+                  }
+                `,
+                { id: postId, points: newPoints, voteStatus: value },
+              );
+            }
+          },
+        },
+      },
+    }),
+    ...
+  ],
+});
+```
+
+Here the `vote` handler reads the `Post` fragment with the voted post's id. If it is found, then if the voteStatus is the same as the value from the mutations `args` (typed with `VoteMutationVariables`), then return early. Otherwise, adjust the `Post` fragment with a new `points` value, using the same double point swing logic as before if there is an existing `voteStatus`. The `voteStatus` is also updated.
+ 
