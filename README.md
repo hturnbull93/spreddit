@@ -4002,3 +4002,63 @@ export class User extends BaseEntity {
 }
 ```
 
+For the `voteStatus` field to be resolved properly it needs to be handled in the `posts` resolver:
+
+```ts
+  @Query(() => PaginatedPosts)
+  async posts(
+    @Arg("limit", () => Int) limit: number,
+    @Arg("cursor", () => String, { nullable: true }) cursor: string,
+    @Ctx() { req }: ApolloContext,
+  ): Promise<PaginatedPosts> {
+    const upperLimit = Math.min(50, limit);
+    const upperLimitPlusOne = upperLimit + 1;
+
+    const replacements: any[] = [upperLimitPlusOne];
+    let userIndex;
+    if (req.session.userId) {
+      replacements.push(req.session.userId);
+      userIndex = replacements.length;
+    }
+    let cursorIndex;
+    if (cursor) {
+      replacements.push(new Date(parseInt(cursor)));
+      cursorIndex = replacements.length;
+    }
+
+    const posts = await getConnection().query(
+      `
+      SELECT p.*,
+      json_build_object(
+        'id', u.id,
+        'username', u.username,
+        'email', u.email,
+        'createdAt', u."createdAt",
+        'updatedAt', u."updatedAt"
+      ) creator,
+      ${
+        req.session.userId
+          ? `(SELECT value FROM vote WHERE "userId" = $${userIndex} AND "postId" = p.id) "voteStatus"`
+          : 'null as "voteStatus"'
+      }
+      FROM post p
+      INNER JOIN public.user u ON u.id = p."creatorId"
+      ${cursor ? `WHERE p."createdAt" < $${cursorIndex}` : ""}
+      ORDER BY p."createdAt" DESC
+      LIMIT $1
+      `,
+      replacements,
+    );
+
+    let hasMore = false;
+    if (posts.length === upperLimitPlusOne) {
+      hasMore = true;
+      posts.pop();
+    }
+
+    return { posts, hasMore };
+  }
+```
+
+Here the main different is the SQL has a subquery for `"voteStatus"` which will either be to select the value from the votes table of the vote where the userId and postId match, which is either the (`1`, `-1` or `null`), or if the user is not logged in, it automatically is set as `null`. There is some logic to handle the correct index of the parameters array also.
+

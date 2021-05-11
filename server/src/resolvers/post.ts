@@ -46,13 +46,21 @@ export class PostResolver {
   async posts(
     @Arg("limit", () => Int) limit: number,
     @Arg("cursor", () => String, { nullable: true }) cursor: string,
+    @Ctx() { req }: ApolloContext,
   ): Promise<PaginatedPosts> {
     const upperLimit = Math.min(50, limit);
     const upperLimitPlusOne = upperLimit + 1;
 
     const replacements: any[] = [upperLimitPlusOne];
+    let userIndex;
+    if (req.session.userId) {
+      replacements.push(req.session.userId);
+      userIndex = replacements.length;
+    }
+    let cursorIndex;
     if (cursor) {
       replacements.push(new Date(parseInt(cursor)));
+      cursorIndex = replacements.length;
     }
 
     const posts = await getConnection().query(
@@ -64,10 +72,15 @@ export class PostResolver {
         'email', u.email,
         'createdAt', u."createdAt",
         'updatedAt', u."updatedAt"
-      ) creator
+      ) creator,
+      ${
+        req.session.userId
+          ? `(SELECT value FROM vote WHERE "userId" = $${userIndex} AND "postId" = p.id) "voteStatus"`
+          : 'null as "voteStatus"'
+      }
       FROM post p
       INNER JOIN public.user u ON u.id = p."creatorId"
-      ${cursor ? `WHERE p."createdAt" < $2` : ""}
+      ${cursor ? `WHERE p."createdAt" < $${cursorIndex}` : ""}
       ORDER BY p."createdAt" DESC
       LIMIT $1
       `,
