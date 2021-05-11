@@ -16,6 +16,7 @@ import {
 import { ApolloContext } from "../types";
 import { isAuth } from "../middleware/isAuth";
 import { getConnection } from "typeorm";
+import { Vote } from "../entities/Vote";
 
 @InputType()
 class PostInput {
@@ -131,6 +132,54 @@ export class PostResolver {
   @Mutation(() => Boolean)
   async deletePost(@Arg("id") id: number): Promise<Boolean> {
     await Post.delete(id);
+    return true;
+  }
+
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  async vote(
+    @Arg("postId", () => Int) postId: number,
+    @Arg("value", () => Int) value: number,
+    @Ctx() { req }: ApolloContext,
+  ): Promise<Boolean> {
+    const isUpvote = value !== -1;
+    const actualValue = isUpvote ? 1 : -1;
+    const { userId } = req.session;
+
+    const vote = await Vote.findOne({ where: { postId, userId } });
+
+    if (vote && vote.value !== actualValue) {
+      await getConnection().transaction(async (tm) => {
+        await tm.query(
+          `UPDATE vote 
+          SET value = $1
+          WHERE "postId" = $2 and "userId" = $3`,
+          [actualValue, postId, userId],
+        );
+        const switchVoteValue = 2 * actualValue;
+        await tm.query(
+          `UPDATE post p
+          SET points = points + $1
+          WHERE p.id = $2`,
+          [switchVoteValue, postId],
+        );
+      });
+    } else if (!vote) {
+      await getConnection().transaction(async (tm) => {
+        await tm.query(
+          `INSERT INTO vote ("userId", "postId", "value")
+          VALUES ($1, $2, $3)`,
+          [userId, postId, actualValue],
+        );
+        await tm.query(
+          `UPDATE post p
+          SET points = points + $1
+          WHERE p.id = $2`,
+          [actualValue, postId],
+        );
+      });
+    }
+
     return true;
   }
 }

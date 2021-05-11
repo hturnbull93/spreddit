@@ -4062,3 +4062,58 @@ For the `voteStatus` field to be resolved properly it needs to be handled in the
 
 Here the main different is the SQL has a subquery for `"voteStatus"` which will either be to select the value from the votes table of the vote where the userId and postId match, which is either the (`1`, `-1` or `null`), or if the user is not logged in, it automatically is set as `null`. There is some logic to handle the correct index of the parameters array also.
 
+To vote on a post, the `vote` resolver is added in `server/src/resolvers/post.ts`:
+
+```ts
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  async vote(
+    @Arg("postId", () => Int) postId: number,
+    @Arg("value", () => Int) value: number,
+    @Ctx() { req }: ApolloContext,
+  ): Promise<Boolean> {
+    const isUpvote = value !== -1;
+    const actualValue = isUpvote ? 1 : -1;
+    const { userId } = req.session;
+
+    const vote = await Vote.findOne({ where: { postId, userId } });
+
+    if (vote && vote.value !== actualValue) {
+      await getConnection().transaction(async (tm) => {
+        await tm.query(
+          `UPDATE vote 
+          SET value = $1
+          WHERE "postId" = $2 and "userId" = $3`,
+          [actualValue, postId, userId],
+        );
+        const switchVoteValue = 2 * actualValue;
+        await tm.query(
+          `UPDATE post p
+          SET points = points + $1
+          WHERE p.id = $2`,
+          [switchVoteValue, postId],
+        );
+      });
+    } else if (!vote) {
+      await getConnection().transaction(async (tm) => {
+        await tm.query(
+          `INSERT INTO vote ("userId", "postId", "value")
+          VALUES ($1, $2, $3)`,
+          [userId, postId, actualValue],
+        );
+        await tm.query(
+          `UPDATE post p
+          SET points = points + $1
+          WHERE p.id = $2`,
+          [actualValue, postId],
+        );
+      });
+    }
+
+    return true;
+  }
+```
+
+First the `vote` resolver checks if a vote for the userId/postId combination exists. If it does and if the existing vote value is different to the incoming value, a transaction is started to update that vote with the new value, and then update the associated post's `points` value accordingly. Note that the `switchVoteValue` is double the `actualValue` as the `+1` would turn into a `-1` so it would need to swing by two points.
+
+If there was no vote found, a transaction occurs to add a new vote and update the post's `points`.
