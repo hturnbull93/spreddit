@@ -4160,3 +4160,69 @@ query Posts($limit: Int!, $cursor: String) {
 ```
 
 And types are regenerated.
+
+In `client/src/components/VoteControl.tsx`:
+
+```tsx
+import { TriangleUpIcon, TriangleDownIcon } from "@chakra-ui/icons";
+import { Flex, IconButton } from "@chakra-ui/react";
+import React, { useState } from "react";
+import { PostSnippetFragment, useVoteMutation } from "../generated/graphql";
+
+interface VoteControlProps {
+  post: PostSnippetFragment;
+}
+
+enum VoteValues {
+  UP = 1,
+  DOWN = -1,
+}
+
+const VoteControl: React.FC<VoteControlProps> = ({ post }) => {
+  const [loading, setLoading] = useState<VoteValues | false>(false);
+  const [_data, vote] = useVoteMutation();
+
+  const voteClickHandlerGenerator = (value: VoteValues) => async () => {
+    console.log(`value`, value);
+    if (value === post.voteStatus) return;
+
+    setLoading(value);
+    await vote({
+      postId: post.id,
+      value,
+    });
+    setLoading(false);
+  };
+
+  const voteStatusIsUpVote = post.voteStatus === VoteValues.UP;
+  const voteStatusIsDownVote = post.voteStatus === VoteValues.DOWN;
+
+  return (
+    <Flex direction="column" alignItems="center">
+      <IconButton
+        colorScheme={voteStatusIsUpVote ? "green" : "black"}
+        aria-label="upvote post"
+        size="xs"
+        variant={voteStatusIsUpVote ? "solid" : "outline"}
+        icon={<TriangleUpIcon size="24px" />}
+        isLoading={loading === VoteValues.UP}
+        onClick={voteClickHandlerGenerator(VoteValues.UP)}
+      />
+      {post.points}
+      <IconButton
+        colorScheme={voteStatusIsDownVote ? "red" : "black"}
+        aria-label="downvote post"
+        size="xs"
+        variant={voteStatusIsDownVote ? "solid" : "outline"}
+        icon={<TriangleDownIcon size="24px" />}
+        isLoading={loading === VoteValues.DOWN}
+        onClick={voteClickHandlerGenerator(VoteValues.DOWN)}
+      />
+    </Flex>
+  );
+};
+
+export default VoteControl;
+```
+
+The `VoteControl` component takes a `post` typed as the `PostSnippetFragment` (conveniently only having the correct types instead of all available types on posts). It renders the post's points, and two buttons to upvote/downvote the post, using the `useVoteMutation`. `voteClickHandlerGenerator` is a function that curry's the returned click handler with the correct value for the vote based on the passed `VoteValue` enum property. If the current `voteStatus` matches the button, the click handler returns early, preventing additional votes of a certain type. `loading` is held in state to determine which of the two buttons should be loading. The buttons are also conditionally styled based on the current `voteStatus`, and flexed vertically around the points number.
