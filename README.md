@@ -4117,3 +4117,46 @@ To vote on a post, the `vote` resolver is added in `server/src/resolvers/post.ts
 First the `vote` resolver checks if a vote for the userId/postId combination exists. If it does and if the existing vote value is different to the incoming value, a transaction is started to update that vote with the new value, and then update the associated post's `points` value accordingly. Note that the `switchVoteValue` is double the `actualValue` as the `+1` would turn into a `-1` so it would need to swing by two points.
 
 If there was no vote found, a transaction occurs to add a new vote and update the post's `points`.
+
+### UI for Voting
+
+First, the vote mutation is added in `client/src/graphql/mutations/vote.graphql`:
+
+```graphql
+mutation Vote($value: Int!, $postId: Int!) {
+  vote(value: $value, postId: $postId)
+}
+```
+
+And for simplicity's sake for types a fragment `PostSnippet` is added in `client/src/graphql/fragments/PostSnippet.graphql`:
+
+```graphql
+fragment PostSnippet on Post {
+  id
+  createdAt
+  updatedAt
+  title
+  textSnippet
+  points
+  voteStatus
+  creator {
+    id
+    username
+  }
+}
+```
+
+Which is used in the `client/src/graphql/queries/posts.graphql` query:
+
+```graphql
+query Posts($limit: Int!, $cursor: String) {
+  posts(limit: $limit, cursor: $cursor) {
+    posts {
+      ...PostSnippet
+    }
+    hasMore
+  }
+}
+```
+
+And types are regenerated.
