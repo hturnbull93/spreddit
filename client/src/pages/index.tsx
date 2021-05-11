@@ -3,14 +3,16 @@ import { createUrqlClient } from "../utils/createUrqlClient";
 import { usePostsQuery } from "../generated/graphql";
 import Layout from "../components/Layout";
 import NextLink from "next/link";
-import { Box, Center, Flex, Heading, Stack, Text } from "@chakra-ui/layout";
+import { Center, Flex, Heading, Stack } from "@chakra-ui/layout";
 import { Spinner } from "@chakra-ui/spinner";
 import { Button } from "@chakra-ui/button";
 import { useState } from "react";
+import { POSTS_PAGINATION_LIMIT } from "../constants";
+import PostCard from "../components/PostCard";
 
 const Index = () => {
   const [variables, setVariables] = useState({
-    limit: 10,
+    limit: POSTS_PAGINATION_LIMIT,
     cursor: null as null | string,
   });
   const [{ fetching, data }] = usePostsQuery({ variables });
@@ -32,10 +34,7 @@ const Index = () => {
         <>
           <Stack spacing={8}>
             {data!.posts.posts.map((p) => (
-              <Box key={p.id} p={5} shadow="md" borderWidth="1px">
-                <Heading fontSize="xl">{p.title}</Heading>
-                <Text mt={4}>{p.textSnippet}</Text>
-              </Box>
+              <PostCard key={p.id} post={p} />
             ))}
           </Stack>
           <Flex>

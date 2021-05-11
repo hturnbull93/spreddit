@@ -4260,3 +4260,5 @@ export default PostCard;
 ```
 
 The `formatDistanceToNow` function from `date-fns` is used to give human readable relative estimate of the time since the post was created.
+
+`PostCard` is rendered in `Index`, mapping through the posts fetched.
