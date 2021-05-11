@@ -4323,4 +4323,31 @@ export const createUrqlClient = (ssrExchange: any) => ({
 ```
 
 Here the `vote` handler reads the `Post` fragment with the voted post's id. If it is found, then if the voteStatus is the same as the value from the mutations `args` (typed with `VoteMutationVariables`), then return early. Otherwise, adjust the `Post` fragment with a new `points` value, using the same double point swing logic as before if there is an existing `voteStatus`. The `voteStatus` is also updated.
- 
+
+### Forwarding Cookie Header During SSR
+
+At the moment, if the main page is server side rendered, there will be no user making the query, so `voteStatus` will always be `null`, even if the browser has a user's cookie on it. While server side rendering, the server can get the cookie out of context, and send that as a header to the backend, to get the `voteStatus` info.
+
+```ts
+...
+
+export const createUrqlClient = (ssrExchange: any, ctx: any) => {
+  let cookie;
+  if (isServer()) cookie = ctx.req.headers.cookie;
+
+  return {
+    ...
+    fetchOptions: {
+      ...
+      headers: cookie
+        ? {
+            cookie,
+          }
+        : undefined,
+    },
+    ...
+  };
+};
+```
+
+The `isServer` helper is used to get the cookie from the request (from the browser) headers, which are then forwarded to the backend as appropriate.
