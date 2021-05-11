@@ -45,7 +45,6 @@ export const cursorPagination = (__typename: string): Resolver => {
 
     return fieldInfos.reduce(
       (prev, fi) => {
-        console.log(`fi.fieldKey`, fi.fieldKey);
         const key = cache.resolve(entityKey, fi.fieldKey) as string;
         const data = cache.resolve(key, fieldName) as string[];
         const hasMore = cache.resolve(key, "hasMore");
