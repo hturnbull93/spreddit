@@ -1937,7 +1937,7 @@ And use that in `NavBar` (or any other place where a GrqphQL request should only
 const NavBar: React.FC<NavBarProps> = ({}) => {
   const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
   const [{ data, fetching }] = useMeQuery({
-    pause: true,
+    pause: isServer(),
   });
 
    ...
