@@ -49,4 +49,7 @@ export class Post extends BaseEntity {
 
   @OneToMany(() => Vote, (vote) => vote.post)
   votes: Vote[];
+
+  @Field(() => Int, { nullable: true })
+  voteStatus: number | null;
 }

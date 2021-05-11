@@ -3982,10 +3982,15 @@ export class Post extends BaseEntity {
    ...
   @OneToMany(() => Vote, (vote) => vote.post)
   votes: Vote[];
+
+  @Field(() => Int, { nullable: true })
+  voteStatus: number | null;
 }
 ```
 
-And the `User`:
+`voteStatus` is a virtual field that will represent if the user has upvoted (`1`) or downvoted (`0`) a post, or not voted at all (`null`).
+
+And on the `User`:
 
 ```tsx
 @ObjectType()
