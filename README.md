@@ -4225,4 +4225,38 @@ const VoteControl: React.FC<VoteControlProps> = ({ post }) => {
 export default VoteControl;
 ```
 
-The `VoteControl` component takes a `post` typed as the `PostSnippetFragment` (conveniently only having the correct types instead of all available types on posts). It renders the post's points, and two buttons to upvote/downvote the post, using the `useVoteMutation`. `voteClickHandlerGenerator` is a function that curry's the returned click handler with the correct value for the vote based on the passed `VoteValue` enum property. If the current `voteStatus` matches the button, the click handler returns early, preventing additional votes of a certain type. `loading` is held in state to determine which of the two buttons should be loading. The buttons are also conditionally styled based on the current `voteStatus`, and flexed vertically around the points number.
+The `VoteControl` component takes a `post` typed as the `PostSnippetFragment` (conveniently only having the correct types instead of all available types on posts). It renders the post's points, and two buttons to upvote/downvote the post, using the `useVoteMutation`. `voteClickHandlerGenerator` is a function that curries the returned click handler with the correct value for the vote based on the passed `VoteValue` enum property. If the current `voteStatus` matches the button, the click handler returns early, preventing additional votes of a certain type. `loading` is held in state to determine which of the two buttons should be loading. The buttons are also conditionally styled based on the current `voteStatus`, and flexed vertically around the points number.
+
+The `VoteControl` component is rendered by the `PostCard` component in `client/src/components/PostCard.tsx`:
+
+```tsx
+import { Box, Flex, Heading, Text } from "@chakra-ui/react";
+import React from "react";
+import { PostSnippetFragment } from "../generated/graphql";
+import VoteControl from "./VoteControl";
+import { formatDistanceToNow } from "date-fns";
+
+interface PostCardProps {
+  post: PostSnippetFragment;
+}
+
+const PostCard: React.FC<PostCardProps> = ({ post }) => {
+  const formattedDate = formatDistanceToNow(new Date(parseInt(post.createdAt)));
+  return (
+    <Box p={5} shadow="md" borderWidth="1px">
+      <Flex justifyContent="space-between">
+        <Box>
+          <Heading size="md">{post.title}</Heading>
+          <Text>{`posted by ${post.creator.username} ${formattedDate} ago`}</Text>
+          <Text mt={4}>{post.textSnippet}</Text>
+        </Box>
+        <VoteControl post={post} />
+      </Flex>
+    </Box>
+  );
+};
+
+export default PostCard;
+```
+
+The `formatDistanceToNow` function from `date-fns` is used to give human readable relative estimate of the time since the post was created.
