@@ -3795,6 +3795,40 @@ export const createUrqlClient = (ssrExchange: any) => ({
 
 Here the `cursorPagination` function returns a `Resolver` function, that is used for the posts query. It takes a `__typename` for reusability. First `fieldName` and `entityKey` are taken off the `info`. These are `posts` and `Query` respectively. Then, the cache is inspected to find cached fields that have the same `fieldName` as the `info` `fieldName`. If there are none, undefined is returned. Then a `fieldKey` is constructed using the `fieldName` and `stringifyVariables` from URQL with `fieldArgs`, producing `posts({"limit":10})`. This is used to resolve whether or not there is anything in the cache already. `info.partial` is set to true if there is nothing in the cache. Then, the cached fieldInfos are reduced through, resolving their own specific keys from the cache, which have the cursor for that call e.g. `posts({"cursor":"1618573184000","limit":10})`. Each the data and `hasMore` for each cached call is resolved, finally returning an object with all posts cached so far, the passed `__typename` and if any of them had false for `hasMore`.
 
+### Invalidating Cache On Post Creation
+
+It's potentially possible to have the cache be updated with a new post as soon as a user creates one, however this would likely be in the wrong order, so invalidating the cache and causing a refetch if an alternative option. in `client/src/utils/createUrqlClient.ts`:
+
+```ts
+...
+export const createUrqlClient = (ssrExchange: any) => ({
+  ...
+  exchanges: [
+    ...,
+    cacheExchange({
+      ...
+      updates: {
+        Mutation: {
+          ...
+          createPost: (_result, _args, cache, _info) => {
+            const allFields = cache.inspectFields("Query");
+            const fieldInfos = allFields.filter(
+              (info) => info.fieldName === "posts",
+            );
+            fieldInfos.forEach((fi) => {
+              cache.invalidate("Query", "posts", fi.arguments || {});
+            });
+          },
+        },
+      },
+    }),
+    ...
+  ],
+});
+```
+
+The `createPost` mutation cache updater function inspects the cache for all queries, then filters them for ones that are `posts` queries. It then iterates through them invalidating the cache for that `posts` query with each of their arguments (the particular limit and cursor).
+
 ### Joining Users to Posts
 
 To get the creator of the post, the tables need to be joined in `PostsResolver.posts`:
