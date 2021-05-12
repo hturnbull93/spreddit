@@ -4531,3 +4531,59 @@ Finally, the `post` resolver in `server/src/resolvers/post.ts` needs to fetch a 
 ```
 
 This is quite similar to the `posts` resolver, but finds a particular post rather than any after the cursor. There is some duplication here, but I think it is important to be able to easily read any SQL that is being used, which is important to understand what is going on.
+
+### NavBar Cleanup
+
+Clean up the `NavBar`, extracting the "Spreddit" title and Create Post button from `Index` and make it max width to match the `Layout` max width:
+
+```tsx
+...
+import { MAX_PAGE_WIDTH } from "../constants";
+...
+const NavBar: React.FC<NavBarProps> = ({}) => {
+  ...
+
+  let body;
+  if (fetching) {
+    body = null;
+  } else if (!data?.me) {
+    ...
+  } else {
+    body = (
+      <Flex alignItems="center">
+        <NextLink href="/create-post">
+          <Button colorScheme="teal" variant="solid" mx={4}>
+            Create post
+          </Button>
+        </NextLink>
+        <Box mx={2}>{data.me.username}</Box>
+        <Button
+          mx={2}
+          variant="link"
+          onClick={() => logout()}
+          isLoading={logoutFetching}
+        >
+          Log out
+        </Button>
+      </Flex>
+    );
+  }
+
+  return (
+    <Flex zIndex={100} position="sticky" top={0} bg="teal" p={4}>
+      <Flex flex={1} maxW={MAX_PAGE_WIDTH} mx="auto" alignItems="center">
+        <NextLink href="/">
+          <Link color="white">
+            <Heading size="md">Spreddit</Heading>
+          </Link>
+        </NextLink>
+        <Flex ml="auto">{body}</Flex>
+      </Flex>
+    </Flex>
+  );
+};
+
+export default NavBar;
+```
+
+And remove those elements from `Index`.

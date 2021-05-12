@@ -2,7 +2,6 @@ import { withUrqlClient } from "next-urql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import { usePostsQuery } from "../generated/graphql";
 import Layout from "../components/Layout";
-import NextLink from "next/link";
 import { Center, Flex, Heading, Stack } from "@chakra-ui/layout";
 import { Spinner } from "@chakra-ui/spinner";
 import { Button } from "@chakra-ui/button";
@@ -19,12 +18,7 @@ const Index = () => {
   return (
     <Layout>
       <Flex align="center" mb={8}>
-        <Heading>Spreddit</Heading>
-        <NextLink href="/create-post">
-          <Button colorScheme="teal" ml="auto">
-            Create post
-          </Button>
-        </NextLink>
+        <Heading>Latest posts</Heading>
       </Flex>
       {!data && fetching ? (
         <Center>
