@@ -15,6 +15,7 @@ import {
   LogoutMutation,
   ChangePasswordMutation,
   VoteMutationVariables,
+  DeletePostMutationVariables,
 } from "../generated/graphql";
 import { typedUpdateQuery } from "./typedUpdateQuery";
 import Router from "next/router";
@@ -152,6 +153,12 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
               fieldInfos.forEach((fi) => {
                 cache.invalidate("Query", "posts", fi.arguments || {});
               });
+            },
+            deletePost: (result, args, cache, _info) => {
+              if (!result.deletePost) return;
+
+              const { id } = args as DeletePostMutationVariables;
+              cache.invalidate({ __typename: "Post", id });
             },
             vote: (_result, args, cache, _info) => {
               const { postId, value } = args as VoteMutationVariables;

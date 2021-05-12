@@ -4622,3 +4622,36 @@ export class Vote extends BaseEntity {
 ```
 
 Also cascading when a User is deleted too (though haven't set that up yet).
+
+The cache can be updated when a user delete a post from the client, in `client/src/utils/createUrqlClient.ts`:
+
+```ts
+...
+export const createUrqlClient = (ssrExchange: any, ctx: any) => {
+  let cookie;
+  if (isServer()) cookie = ctx.req.headers.cookie;
+
+  return {
+    ...
+    exchanges: [
+      ...
+      cacheExchange({
+        ...
+        updates: {
+          Mutation: {
+            ...
+            deletePost: (result, args, cache, _info) => {
+              if (!result.deletePost) return;
+
+              const { id } = args as DeletePostMutationVariables;
+              cache.invalidate({ __typename: "Post", id });
+            },
+            ...
+          },
+        },
+      }),
+      ...
+    ],
+  };
+};
+```
