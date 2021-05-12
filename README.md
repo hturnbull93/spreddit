@@ -4488,3 +4488,46 @@ export default PostCard;
 ```
 
 It may not be required by NextJS to use the full `href="/posts/[id]" as={`/posts/${post.id}`}` syntax any more, but just in case I have put it in.
+
+Finally, the `post` resolver in `server/src/resolvers/post.ts` needs to fetch a `creator` and the post's `voteStatus` for the user:
+
+```ts
+  @Query(() => Post, { nullable: true })
+  async post(
+    @Arg("id", () => Int) id: number,
+    @Ctx() { req }: ApolloContext,
+  ): Promise<Post | undefined> {
+    const replacements: any[] = [id];
+    let userIndex;
+    if (req.session.userId) {
+      replacements.push(req.session.userId);
+      userIndex = replacements.length;
+    }
+
+    const posts = await getConnection().query(
+      `
+      SELECT p.*,
+      json_build_object(
+        'id', u.id,
+        'username', u.username,
+        'email', u.email,
+        'createdAt', u."createdAt",
+        'updatedAt', u."updatedAt"
+      ) creator,
+      ${
+        req.session.userId
+          ? `(SELECT value FROM vote WHERE "userId" = $${userIndex} AND "postId" = p.id) "voteStatus"`
+          : 'null as "voteStatus"'
+      }
+      FROM post p
+      INNER JOIN public.user u ON u.id = p."creatorId"
+      WHERE p.id = $1
+      `,
+      replacements,
+    );
+
+    return posts[0];
+  }
+```
+
+This is quite similar to the `posts` resolver, but finds a particular post rather than any after the cursor. There is some duplication here, but I think it is important to be able to easily read any SQL that is being used, which is important to understand what is going on.
