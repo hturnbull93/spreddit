@@ -4587,3 +4587,38 @@ export default NavBar;
 ```
 
 And remove those elements from `Index`.
+
+### Guard Deleting Posts
+
+At the moment any post can be deleted by hitting the `deletePost` resolver with an id. Only the owner of a post should be able to delete it.
+
+In the `PostResolver`:
+
+```ts
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  async deletePost(
+    @Arg("id", () => Int) id: number,
+    @Ctx() { req }: ApolloContext,
+  ): Promise<Boolean> {
+    await Post.delete({ id, creatorId: req.session.userId });
+    return true;
+  }
+```
+
+Here the Post that matches the passed `id` and the current `userId` is deleted. It won't find a post by that `id` unless the `userId` also matches. `Post` has a one to many relationship with `Vote` so in the `Vote` entity, an `onDelete` policy can be set to cause the database to delete the vote when it's related post is deleted:
+
+```ts
+export class Vote extends BaseEntity {
+  ...
+  @Field(() => User)
+  @ManyToOne(() => User, (user) => user.votes, { onDelete: "CASCADE" })
+  user: User;
+  ...
+  @Field(() => Post)
+  @ManyToOne(() => Post, (post) => post.votes, { onDelete: "CASCADE" })
+  post: Post;
+}
+```
+
+Also cascading when a User is deleted too (though haven't set that up yet).
