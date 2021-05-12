@@ -4601,12 +4601,12 @@ In the `PostResolver`:
     @Arg("id", () => Int) id: number,
     @Ctx() { req }: ApolloContext,
   ): Promise<Boolean> {
-    await Post.delete({ id, creatorId: req.session.userId });
-    return true;
+    const result = await Post.delete({ id, creatorId: req.session.userId });
+    return !!result.affected;
   }
 ```
 
-Here the Post that matches the passed `id` and the current `userId` is deleted. It won't find a post by that `id` unless the `userId` also matches. `Post` has a one to many relationship with `Vote` so in the `Vote` entity, an `onDelete` policy can be set to cause the database to delete the vote when it's related post is deleted:
+Here the Post that matches the passed `id` and the current `userId` is deleted. It won't find a post by that `id` unless the `userId` also matches. The `result.affected` will either be 1 or 0, which can be cast to a boolean and returned. `Post` has a one to many relationship with `Vote` so in the `Vote` entity, an `onDelete` policy can be set to cause the database to delete the vote when it's related post is deleted:
 
 ```ts
 export class Vote extends BaseEntity {

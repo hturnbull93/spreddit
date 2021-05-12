@@ -167,8 +167,8 @@ export class PostResolver {
     @Arg("id", () => Int) id: number,
     @Ctx() { req }: ApolloContext,
   ): Promise<Boolean> {
-    await Post.delete({ id, creatorId: req.session.userId });
-    return true;
+    const result = await Post.delete({ id, creatorId: req.session.userId });
+    return !!result.affected;
   }
 
   @Mutation(() => Boolean)
