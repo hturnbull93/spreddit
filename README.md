@@ -4425,3 +4425,28 @@ export default withUrqlClient(createUrqlClient, { ssr: true })(Post);
 ```
 
 Here the `id` is taken off the query string and parsed to an integer. If it isn't a string (i.e. there is an array resulting from something such as `/posts/123/abc`) the `intId` is set as `NaN`. In either case the `intId` is used to pause `usePostQuery` if it is `NaN`. While the post is being fetched a loading spinner is rendered. If an error is returned or the data has no post an error page is rendered. If the post comes back successfully, it is rendered in a similar layout to the `PostCard` but with the full text instead, along with a `VoteControl`.
+
+`VoteControlProps` has been slightly modified to use a new fragment in `client/src/graphql/fragments/PostVote.graphql`:
+
+```graphql
+fragment PostVoteControl on Post {
+  id
+  points
+  voteStatus
+}
+```
+
+Which is used to generate the type `PostVoteControlFragment` used in `client/src/components/VoteControl.tsx`:
+
+```ts
+...
+import { PostVoteControlFragment, useVoteMutation } from "../generated/graphql";
+
+interface VoteControlProps {
+  post: PostVoteControlFragment & { [key: string]: any };
+}
+...
+```
+
+This combines the properties on the `PostVoteControlFragment` with any other properties. This allows any object to be passed to the `VoteControl` as long as they have at least the `id`, `points` and `voteStatus`. Now both the objects form the `Post` query and `Posts` query can be passed to `VoteControl`.
+ 

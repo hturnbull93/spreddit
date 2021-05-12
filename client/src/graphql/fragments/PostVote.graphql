@@ -1,0 +1,5 @@
+fragment PostVoteControl on Post {
+  id
+  points
+  voteStatus
+}

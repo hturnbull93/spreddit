@@ -1,10 +1,10 @@
 import { TriangleUpIcon, TriangleDownIcon } from "@chakra-ui/icons";
 import { Flex, IconButton } from "@chakra-ui/react";
 import React, { useState } from "react";
-import { PostSnippetFragment, useVoteMutation } from "../generated/graphql";
+import { PostVoteControlFragment, useVoteMutation } from "../generated/graphql";
 
 interface VoteControlProps {
-  post: PostSnippetFragment;
+  post: PostVoteControlFragment & { [key: string]: any };
 }
 
 enum VoteValues {
