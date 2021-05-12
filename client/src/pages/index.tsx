@@ -27,9 +27,9 @@ const Index = () => {
       ) : (
         <>
           <Stack spacing={8}>
-            {data!.posts.posts.map((p) => (
-              <PostCard key={p.id} post={p} />
-            ))}
+            {data!.posts.posts.map(
+              (p) => p && <PostCard key={p.id} post={p} />,
+            )}
           </Stack>
           <Flex>
             {data!.posts.hasMore ? (

@@ -4655,3 +4655,13 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
   };
 };
 ```
+
+The `deletePost` cache updater function returns early if the result is false, otherwise it invalidates the post in the cache by the `id`. This replaces the document with `null`, so in the `Index` component `null`s in the post array need to be prevented from rendering into `PostCard`s:
+
+```tsx
+         ...
+            {data!.posts.posts.map(
+              (p) => p && <PostCard key={p.id} post={p} />,
+            )}
+         ...
+```
