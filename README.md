@@ -1,20 +1,75 @@
-# Reddit Clone
+<!-- omit in toc -->
+# Spreddit - Reddit Clone
 
 This project is to practice and gain more understanding of best practices when using the following technologies:
 
-- React
 - TypeScript
+- React
+- Next.js
 - GraphQL
 - URQL/Apollo
-- Node.js
+- Chakra
+- TypeGraphQL
 - PostgreSQL
 - MikroORM/TypeORM
 - Redis
-- Next.js
-- TypeGraphQL
-- Chakra
 
-Following [this tutorial](https://www.youtube.com/watch?v=I6ypD7qv3Z8&ab_channel=BenAwad).
+## Table of Contents
+
+- [Table of Contents](#table-of-contents)
+- [Quick Start](#quick-start)
+- [Development Journal](#development-journal)
+  - [Setting up TypeScript with Node](#setting-up-typescript-with-node)
+  - [Mikro ORM & Postgresql](#mikro-orm--postgresql)
+  - [Post Entity](#post-entity)
+  - [MikroORM CLI Setup](#mikroorm-cli-setup)
+  - [Running a Migration for Posts](#running-a-migration-for-posts)
+  - [Server Setup](#server-setup)
+  - [GraphQL Schema Setup](#graphql-schema-setup)
+  - [Post Resolvers for CRUD Operations](#post-resolvers-for-crud-operations)
+  - [Users and Authentication](#users-and-authentication)
+  - [Sessions and Authentication](#sessions-and-authentication)
+  - [Install Next.js with Chakra UI](#install-nextjs-with-chakra-ui)
+  - [Snippets](#snippets)
+  - [Register Page](#register-page)
+  - [GraphQL Client](#graphql-client)
+  - [Accepting CORS Requests](#accepting-cors-requests)
+  - [Register Mutation](#register-mutation)
+  - [Generating GraphQL Types](#generating-graphql-types)
+  - [Render Register Errors and Handle Success](#render-register-errors-and-handle-success)
+  - [Login Page](#login-page)
+  - [NavBar](#navbar)
+  - [Caching GraphQL Responses](#caching-graphql-responses)
+  - [Refactoring a User Fragment](#refactoring-a-user-fragment)
+  - [Logout](#logout)
+  - [Server Side Rendering](#server-side-rendering)
+  - [Skipping Queries on SSR](#skipping-queries-on-ssr)
+  - [Add Email to User](#add-email-to-user)
+  - [Nodemailer Setup](#nodemailer-setup)
+  - [Reset Password Email](#reset-password-email)
+  - [Further Fragmenting GraphQL](#further-fragmenting-graphql)
+  - [Replacing MikroORM with TypeORM](#replacing-mikroorm-with-typeorm)
+  - [Expanding on Users and Posts](#expanding-on-users-and-posts)
+  - [Linking User to Posts on Creation](#linking-user-to-posts-on-creation)
+  - [Create Post Page](#create-post-page)
+  - [Global Authentication Error Handling](#global-authentication-error-handling)
+  - [Smart Redirect After Login](#smart-redirect-after-login)
+  - [Paginating Posts](#paginating-posts)
+  - [Seeding Post Data](#seeding-post-data)
+  - [Displaying Snippets of Posts](#displaying-snippets-of-posts)
+  - [Better Post Pagination](#better-post-pagination)
+  - [Rendering the Posts](#rendering-the-posts)
+  - [Custom Resolver for Cursor Pagination](#custom-resolver-for-cursor-pagination)
+  - [Invalidating Cache On Post Creation](#invalidating-cache-on-post-creation)
+  - [Joining Users to Posts](#joining-users-to-posts)
+  - [Guarding Email Addresses](#guarding-email-addresses)
+  - [Votes on Posts](#votes-on-posts)
+  - [UI for Voting](#ui-for-voting)
+  - [Forwarding Cookie Header During SSR](#forwarding-cookie-header-during-ssr)
+  - [Displaying Individual Posts](#displaying-individual-posts)
+  - [NavBar Cleanup](#navbar-cleanup)
+  - [Guard Deleting Posts](#guard-deleting-posts)
+
 
 ## Quick Start
 
@@ -33,6 +88,8 @@ cd client && yarn dev
 ```
 
 ## Development Journal
+
+This project is a work in progresss, inspired by [this tutorial](https://www.youtube.com/watch?v=I6ypD7qv3Z8&ab_channel=BenAwad).
 
 ### Setting up TypeScript with Node
 
