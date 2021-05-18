@@ -4722,3 +4722,66 @@ The `deletePost` cache updater function returns early if the result is false, ot
             )}
          ...
 ```
+
+### Post Action Menu
+
+The actions a user can take is edit or delete their post. For this I created the `PostActionMenu` component in `client/src/components/PostActionMenu.tsx`:
+
+```tsx
+import React from "react";
+import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
+import {
+  Menu,
+  MenuButton,
+  IconButton,
+  MenuList,
+  MenuItem,
+} from "@chakra-ui/react";
+import NextLink from "next/link";
+import {
+  useDeletePostMutation,
+  PostActionFragment,
+  useMeQuery,
+} from "../generated/graphql";
+
+interface PostActionMenuProps {
+  post: PostActionFragment;
+}
+
+const PostActionMenu: React.FC<PostActionMenuProps> = ({ post }) => {
+  const [{ data }] = useMeQuery();
+  const [{ fetching }, deletePost] = useDeletePostMutation();
+
+  if (data?.me?.id !== post.creator.id) return null;
+
+  return (
+    <Menu placement="bottom-end">
+      <MenuButton
+        size="sm"
+        colorScheme="teal"
+        as={IconButton}
+        icon={<EditIcon />}
+        aria-label="post menu"
+      />
+      <MenuList>
+        <NextLink href="/posts/edit/[id]" as={`/posts/edit/${post.id}`}>
+          <MenuItem icon={<EditIcon />}>Edit post</MenuItem>
+        </NextLink>
+        <MenuItem
+          bg="red.100"
+          _hover={{ bg: "red.200" }}
+          icon={<DeleteIcon />}
+          isLoading={fetching}
+          onClick={() => deletePost({ id: post.id })}
+        >
+          Delete post
+        </MenuItem>
+      </MenuList>
+    </Menu>
+  );
+};
+
+export default PostActionMenu;
+```
+
+This uses Chakra's `Menu` to create a small drop down menu presenting options to edit or delete the post. The edit option is a link to the edit page (not yet implemented), and the delete option uses `useDeletePostMutation` to delete a post by its id. The `useMeQuery` is used to guard against presenting this to users who are not the creator of the post, returning `null` if they are not, which is passed in with the `PostActionFragment`, which contains the post `id` and `creator.id`.

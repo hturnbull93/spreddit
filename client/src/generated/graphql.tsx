@@ -42,12 +42,12 @@ export type MutationCreatePostArgs = {
 };
 
 export type MutationUpdatePostArgs = {
-  id: Scalars["Float"];
+  id: Scalars["Int"];
   input: PostInput;
 };
 
 export type MutationDeletePostArgs = {
-  id: Scalars["Float"];
+  id: Scalars["Int"];
 };
 
 export type MutationVoteArgs = {
@@ -135,6 +135,10 @@ export type UsernamePasswordInput = {
   email: Scalars["String"];
 };
 
+export type PostActionFragment = { __typename?: "Post" } & Pick<Post, "id"> & {
+    creator: { __typename?: "User" } & Pick<User, "id">;
+  };
+
 export type PostSnippetFragment = { __typename?: "Post" } & Pick<
   Post,
   | "id"
@@ -186,6 +190,15 @@ export type CreatePostMutation = { __typename?: "Mutation" } & {
   >;
 };
 
+export type DeletePostMutationVariables = Exact<{
+  id: Scalars["Int"];
+}>;
+
+export type DeletePostMutation = { __typename?: "Mutation" } & Pick<
+  Mutation,
+  "deletePost"
+>;
+
 export type ForgotPasswordMutationVariables = Exact<{
   email: Scalars["String"];
 }>;
@@ -217,6 +230,20 @@ export type RegisterMutationVariables = Exact<{
 
 export type RegisterMutation = { __typename?: "Mutation" } & {
   register: { __typename?: "UserResponse" } & RegularUserResponseFragment;
+};
+
+export type UpdatePostMutationVariables = Exact<{
+  id: Scalars["Int"];
+  input: PostInput;
+}>;
+
+export type UpdatePostMutation = { __typename?: "Mutation" } & {
+  updatePost?: Maybe<
+    { __typename?: "Post" } & Pick<
+      Post,
+      "id" | "title" | "text" | "textSnippet"
+    >
+  >;
 };
 
 export type VoteMutationVariables = Exact<{
@@ -256,6 +283,14 @@ export type PostsQuery = { __typename?: "Query" } & {
     };
 };
 
+export const PostActionFragmentDoc = gql`
+  fragment PostAction on Post {
+    id
+    creator {
+      id
+    }
+  }
+`;
 export const PostSnippetFragmentDoc = gql`
   fragment PostSnippet on Post {
     id
@@ -336,6 +371,17 @@ export function useCreatePostMutation() {
     CreatePostDocument,
   );
 }
+export const DeletePostDocument = gql`
+  mutation DeletePost($id: Int!) {
+    deletePost(id: $id)
+  }
+`;
+
+export function useDeletePostMutation() {
+  return Urql.useMutation<DeletePostMutation, DeletePostMutationVariables>(
+    DeletePostDocument,
+  );
+}
 export const ForgotPasswordDocument = gql`
   mutation ForgotPassword($email: String!) {
     forgotPassword(email: $email)
@@ -383,6 +429,22 @@ export const RegisterDocument = gql`
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(
     RegisterDocument,
+  );
+}
+export const UpdatePostDocument = gql`
+  mutation UpdatePost($id: Int!, $input: PostInput!) {
+    updatePost(id: $id, input: $input) {
+      id
+      title
+      text
+      textSnippet
+    }
+  }
+`;
+
+export function useUpdatePostMutation() {
+  return Urql.useMutation<UpdatePostMutation, UpdatePostMutationVariables>(
+    UpdatePostDocument,
   );
 }
 export const VoteDocument = gql`

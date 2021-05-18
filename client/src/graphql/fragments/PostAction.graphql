@@ -1,0 +1,6 @@
+fragment PostAction on Post {
+  id
+  creator {
+    id
+  }
+}
