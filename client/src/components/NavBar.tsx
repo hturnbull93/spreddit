@@ -19,29 +19,30 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
     body = null;
   } else if (!data?.me) {
     body = (
-      <>
+      <Flex alignItems="center">
         <NextLink href="/login">
-          <Link color="white" mr={2}>
+          <Link as={Button} colorScheme="white" mr={4} fontWeight="bold">
             Log in
           </Link>
         </NextLink>
         <NextLink href="/register">
           <Link color="white">Register</Link>
         </NextLink>
-      </>
+      </Flex>
     );
   } else {
     body = (
       <Flex alignItems="center">
         <NextLink href="/create-post">
-          <Button colorScheme="teal" variant="solid" mx={4}>
+          <Link as={Button} colorScheme="white" mx={4}>
             Create post
-          </Button>
+          </Link>
         </NextLink>
         <Box mx={2}>{data.me.username}</Box>
         <Button
           mx={2}
           variant="link"
+          color="white"
           onClick={() => logout()}
           isLoading={logoutFetching}
         >
