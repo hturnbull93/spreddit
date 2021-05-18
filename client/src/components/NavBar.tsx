@@ -1,5 +1,12 @@
 import React from "react";
-import { Box, Flex, Heading, Link } from "@chakra-ui/layout";
+import {
+  Box,
+  Flex,
+  Heading,
+  Link,
+  LinkBox,
+  LinkOverlay,
+} from "@chakra-ui/layout";
 import NextLink from "next/link";
 import { useLogoutMutation, useMeQuery } from "../generated/graphql";
 import { Button } from "@chakra-ui/button";
@@ -61,11 +68,13 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
         mx="auto"
         alignItems="center"
       >
-        <NextLink href="/">
-          <Link color="white">
-            <Heading size="md">Spreddit</Heading>
-          </Link>
-        </NextLink>
+        <LinkBox>
+          <Heading size="md" color="white">
+            <NextLink href="/" passHref>
+              <LinkOverlay>Spreddit</LinkOverlay>
+            </NextLink>
+          </Heading>
+        </LinkBox>
         <Flex ml="auto">{body}</Flex>
       </Flex>
     </Flex>
