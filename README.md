@@ -69,6 +69,7 @@ This project is to practice and gain more understanding of best practices when u
   - [Displaying Individual Posts](#displaying-individual-posts)
   - [NavBar Cleanup](#navbar-cleanup)
   - [Guard Deleting Posts](#guard-deleting-posts)
+  - [Post Action Menu](#post-action-menu)
 
 
 ## Quick Start
@@ -4785,3 +4786,88 @@ export default PostActionMenu;
 ```
 
 This uses Chakra's `Menu` to create a small drop down menu presenting options to edit or delete the post. The edit option is a link to the edit page (not yet implemented), and the delete option uses `useDeletePostMutation` to delete a post by its id. The `useMeQuery` is used to guard against presenting this to users who are not the creator of the post, returning `null` if they are not, which is passed in with the `PostActionFragment`, which contains the post `id` and `creator.id`.
+
+The `PostActionMenu` is rendered by the `PostCard`:
+
+```tsx
+import React from "react";
+import {
+  Box,
+  Flex,
+  Heading,
+  LinkOverlay,
+  LinkBox,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
+import NextLink from "next/link";
+import { formatDistanceToNow } from "date-fns";
+import { PostSnippetFragment } from "../generated/graphql";
+import VoteControl from "./VoteControl";
+import PostActionMenu from "./PostActionMenu";
+
+interface PostCardProps {
+  post: PostSnippetFragment;
+}
+
+const PostCard: React.FC<PostCardProps> = ({ post }) => {
+  const formattedDate = formatDistanceToNow(new Date(parseInt(post.createdAt)));
+
+  return (
+    <Box as="article" p={5} shadow="md" borderWidth="1px">
+      <Flex justifyContent="space-between">
+        <Box>
+          <LinkBox>
+            <Heading size="md">
+              <NextLink href="/posts/[id]" as={`/posts/${post.id}`} passHref>
+                <LinkOverlay>{post.title}</LinkOverlay>
+              </NextLink>
+            </Heading>
+          </LinkBox>
+          <Text>{`posted by ${post.creator.username} ${formattedDate} ago`}</Text>
+          <Text mt={4}>{post.textSnippet}</Text>
+        </Box>
+        <Stack>
+          <VoteControl post={post} />
+          <PostActionMenu post={post} />
+        </Stack>
+      </Flex>
+    </Box>
+  );
+};
+
+export default PostCard;
+```
+
+`PostCard` also makes use of `LinkBox` to allow elements within to be semantically clickable and tab-targetable using `LinkOverlay` to specify the `Heading`.
+
+Similarly, `NavBar gets this:
+
+```tsx
+...
+const NavBar: React.FC<NavBarProps> = ({}) => {
+  ...
+  return (
+    <Flex zIndex={100} position="sticky" top={0} bg="teal" p={4}>
+      <Flex
+        as="nav"
+        flex={1}
+        maxW={MAX_PAGE_WIDTH}
+        mx="auto"
+        alignItems="center"
+      >
+        <LinkBox>
+          <Heading size="md" color="white">
+            <NextLink href="/" passHref>
+              <LinkOverlay>Spreddit</LinkOverlay>
+            </NextLink>
+          </Heading>
+        </LinkBox>
+        <Flex ml="auto">{body}</Flex>
+      </Flex>
+    </Flex>
+  );
+};
+
+export default NavBar;
+```

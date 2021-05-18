@@ -1,9 +1,18 @@
-import { Box, Flex, Heading, Link, Text } from "@chakra-ui/react";
 import React from "react";
+import {
+  Box,
+  Flex,
+  Heading,
+  LinkOverlay,
+  LinkBox,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
+import NextLink from "next/link";
+import { formatDistanceToNow } from "date-fns";
 import { PostSnippetFragment } from "../generated/graphql";
 import VoteControl from "./VoteControl";
-import { formatDistanceToNow } from "date-fns";
-import NextLink from "next/link";
+import PostActionMenu from "./PostActionMenu";
 
 interface PostCardProps {
   post: PostSnippetFragment;
@@ -11,19 +20,25 @@ interface PostCardProps {
 
 const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const formattedDate = formatDistanceToNow(new Date(parseInt(post.createdAt)));
+
   return (
-    <Box p={5} shadow="md" borderWidth="1px">
+    <Box as="article" p={5} shadow="md" borderWidth="1px">
       <Flex justifyContent="space-between">
         <Box>
-          <NextLink href="/posts/[id]" as={`/posts/${post.id}`}>
-            <Link>
-              <Heading size="md">{post.title}</Heading>
-            </Link>
-          </NextLink>
+          <LinkBox>
+            <Heading size="md">
+              <NextLink href="/posts/[id]" as={`/posts/${post.id}`} passHref>
+                <LinkOverlay>{post.title}</LinkOverlay>
+              </NextLink>
+            </Heading>
+          </LinkBox>
           <Text>{`posted by ${post.creator.username} ${formattedDate} ago`}</Text>
           <Text mt={4}>{post.textSnippet}</Text>
         </Box>
-        <VoteControl post={post} />
+        <Stack>
+          <VoteControl post={post} />
+          <PostActionMenu post={post} />
+        </Stack>
       </Flex>
     </Box>
   );
