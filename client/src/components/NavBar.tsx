@@ -54,7 +54,13 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
 
   return (
     <Flex zIndex={100} position="sticky" top={0} bg="teal" p={4}>
-      <Flex flex={1} maxW={MAX_PAGE_WIDTH} mx="auto" alignItems="center">
+      <Flex
+        as="nav"
+        flex={1}
+        maxW={MAX_PAGE_WIDTH}
+        mx="auto"
+        alignItems="center"
+      >
         <NextLink href="/">
           <Link color="white">
             <Heading size="md">Spreddit</Heading>
