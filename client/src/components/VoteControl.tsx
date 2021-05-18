@@ -35,7 +35,7 @@ const VoteControl: React.FC<VoteControlProps> = ({ post }) => {
       <IconButton
         colorScheme={voteStatusIsUpVote ? "green" : "black"}
         aria-label="upvote post"
-        size="xs"
+        size="sm"
         variant={voteStatusIsUpVote ? "solid" : "outline"}
         icon={<TriangleUpIcon size="24px" />}
         isLoading={loading === VoteValues.UP}
@@ -45,7 +45,7 @@ const VoteControl: React.FC<VoteControlProps> = ({ post }) => {
       <IconButton
         colorScheme={voteStatusIsDownVote ? "red" : "black"}
         aria-label="downvote post"
-        size="xs"
+        size="sm"
         variant={voteStatusIsDownVote ? "solid" : "outline"}
         icon={<TriangleDownIcon size="24px" />}
         isLoading={loading === VoteValues.DOWN}
