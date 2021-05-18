@@ -18,7 +18,7 @@ const Index = () => {
   return (
     <Layout>
       <Flex align="center" mb={8}>
-        <Heading>Latest posts</Heading>
+        <Heading as="h1">Latest posts</Heading>
       </Flex>
       {!data && fetching ? (
         <Center>
