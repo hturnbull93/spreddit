@@ -70,7 +70,7 @@ This project is to practice and gain more understanding of best practices when u
   - [NavBar Cleanup](#navbar-cleanup)
   - [Guard Deleting Posts](#guard-deleting-posts)
   - [Post Action Menu](#post-action-menu)
-
+  - [Edit Post Page](#edit-post-page)
 
 ## Quick Start
 
@@ -4871,3 +4871,118 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
 
 export default NavBar;
 ```
+
+### Edit Post Page
+
+In `client/src/pages/posts/edit/[id].tsx`:
+
+```tsx
+import { Box, Button } from "@chakra-ui/react";
+import { Formik, Form } from "formik";
+import { withUrqlClient } from "next-urql";
+import Error from "next/error";
+import { useRouter } from "next/router";
+import React from "react";
+import InputField from "../../../components/InputField";
+import Layout from "../../../components/Layout";
+import { useUpdatePostMutation } from "../../../generated/graphql";
+import { createUrqlClient } from "../../../utils/createUrqlClient";
+import { useGetPostFromUrl } from "../../../utils/useGetPostFromUrl";
+import { useIsAuth } from "../../../utils/useIsAuth";
+import LargeLoadingSpinner from "../../../components/LargeLoadingSpinner";
+
+interface EditPostProps {}
+
+const EditPost: React.FC<EditPostProps> = () => {
+  const router = useRouter();
+  const { isAuth, fetching: authFetching } = useIsAuth();
+  const [{ fetching, error, data }] = useGetPostFromUrl();
+  const [_data, updatePost] = useUpdatePostMutation();
+
+  const layoutLoadingSpinner = (
+    <Layout>
+      <LargeLoadingSpinner />
+    </Layout>
+  );
+
+  if (fetching || authFetching) return layoutLoadingSpinner;
+
+  const notFoundError = (
+    <Error statusCode={404} title="This post could not be found" />
+  );
+  if (error) return notFoundError;
+  if (!data?.post) return notFoundError;
+
+  const { post } = data;
+
+  if (isAuth?.id !== post.creator.id) {
+    router.replace(`/posts/${post.id}`);
+    return layoutLoadingSpinner;
+  }
+
+  return (
+    <Layout variant="small">
+      <Formik
+        initialValues={{ title: post.title, text: post.text }}
+        onSubmit={async (values) => {
+          const { error } = await updatePost({
+            id: data!.post!.id,
+            input: values,
+          });
+          if (!error) {
+            router.push(`/posts/${post.id}`);
+          }
+        }}
+      >
+        {({ isSubmitting }) => (
+          <Form>
+            <InputField name="title" placeholder="title" label="Title" />
+            <Box mt={4}>
+              <InputField
+                name="text"
+                placeholder="text..."
+                label="Body"
+                textArea
+              />
+            </Box>
+            <Button
+              mt={4}
+              isLoading={isSubmitting}
+              type="submit"
+              colorScheme="teal"
+            >
+              Update post
+            </Button>
+          </Form>
+        )}
+      </Formik>
+    </Layout>
+  );
+};
+
+export default withUrqlClient(createUrqlClient)(EditPost);
+```
+
+In the `EditPost` component, the `useIsAuth` and the new `useGetPostFromUrl` hooks fetch the user and the post to edit. If the user is not the creator of the post they are moved to view the post. The fetched post title and text are used as the initial values for the form, which uses the `useUpdatePostMutation` on submit, and if there are no errors, pushes to the newly edited post.
+
+`useGetPostFromUrl` in `client/src/utils/useGetPostFromUrl.ts` encapsulates the logic to get the id from the urql query string and fetch the post:
+
+```ts
+import { useRouter } from "next/router";
+import { usePostQuery } from "../generated/graphql";
+
+export const useGetPostFromUrl = () => {
+  const router = useRouter();
+  const { id } = router.query;
+  const intId = typeof id === "string" ? parseInt(id) : NaN;
+
+  return usePostQuery({
+    pause: isNaN(intId),
+    variables: {
+      id: intId,
+    },
+  });
+};
+```
+
+The `Post` page uses this new hook also.
