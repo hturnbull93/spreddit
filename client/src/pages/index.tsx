@@ -3,11 +3,11 @@ import { createUrqlClient } from "../utils/createUrqlClient";
 import { usePostsQuery } from "../generated/graphql";
 import Layout from "../components/Layout";
 import { Center, Flex, Heading, Stack } from "@chakra-ui/layout";
-import { Spinner } from "@chakra-ui/spinner";
 import { Button } from "@chakra-ui/button";
 import { useState } from "react";
 import { POSTS_PAGINATION_LIMIT } from "../constants";
 import PostCard from "../components/PostCard";
+import LargeLoadingSpinner from "../components/LargeLoadingSpinner";
 
 const Index = () => {
   const [variables, setVariables] = useState({
@@ -21,9 +21,7 @@ const Index = () => {
         <Heading as="h1">Latest posts</Heading>
       </Flex>
       {!data && fetching ? (
-        <Center>
-          <Spinner size="xl" />
-        </Center>
+        <LargeLoadingSpinner />
       ) : (
         <>
           <Stack spacing={8}>

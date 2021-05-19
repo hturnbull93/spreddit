@@ -1,6 +1,5 @@
 import React from "react";
-import { Box, Center, Flex, Heading, Text } from "@chakra-ui/layout";
-import { Spinner } from "@chakra-ui/spinner";
+import { Box, Flex, Heading, Text } from "@chakra-ui/layout";
 import { withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
 import Layout from "../../components/Layout";
@@ -9,6 +8,7 @@ import { createUrqlClient } from "../../utils/createUrqlClient";
 import Error from "next/error";
 import { formatDistanceToNow } from "date-fns";
 import VoteControl from "../../components/VoteControl";
+import LargeLoadingSpinner from "../../components/LargeLoadingSpinner";
 
 interface PostProps {}
 
@@ -27,9 +27,7 @@ const Post: React.FC<PostProps> = () => {
   if (fetching) {
     return (
       <Layout>
-        <Center h="100%">
-          <Spinner size="xl" />
-        </Center>
+        <LargeLoadingSpinner />
       </Layout>
     );
   }

@@ -1,9 +1,10 @@
-import { Box, Button, Center, Spinner } from "@chakra-ui/react";
+import { Box, Button } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
 import { withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
 import React from "react";
 import InputField from "../components/InputField";
+import LargeLoadingSpinner from "../components/LargeLoadingSpinner";
 import Layout from "../components/Layout";
 import { useCreatePostMutation } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
@@ -18,9 +19,7 @@ const CreatePost: React.FC<CreatePostProps> = ({}) => {
   return (
     <Layout variant="small">
       {!isAuth ? (
-        <Center>
-          <Spinner size="xl" />
-        </Center>
+        <LargeLoadingSpinner />
       ) : (
         <Formik
           initialValues={{ title: "", text: "" }}
