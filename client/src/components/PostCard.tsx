@@ -33,7 +33,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
             </Heading>
           </LinkBox>
           <Text>{`posted by ${post.creator.username} ${formattedDate} ago`}</Text>
-          <Text mt={4}>{post.textSnippet}</Text>
+          <Text mt={4}>{`${post.textSnippet}...`}</Text>
         </Box>
         <Stack>
           <VoteControl post={post} />
