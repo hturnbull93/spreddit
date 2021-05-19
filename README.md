@@ -4926,7 +4926,7 @@ const EditPost: React.FC<EditPostProps> = () => {
         initialValues={{ title: post.title, text: post.text }}
         onSubmit={async (values) => {
           const { error } = await updatePost({
-            id: data!.post!.id,
+            id: post.id,
             input: values,
           });
           if (!error) {
