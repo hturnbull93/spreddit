@@ -37,10 +37,12 @@ const Index = () => {
                 my={8}
                 colorScheme="teal"
                 onClick={() => {
+                  const nonNullPosts = data!.posts.posts.filter(
+                    (post) => !!post,
+                  );
                   setVariables({
                     limit: variables.limit,
-                    cursor: data!.posts.posts[data!.posts.posts.length - 1]
-                      .createdAt,
+                    cursor: nonNullPosts[nonNullPosts.length - 1].createdAt,
                   });
                 }}
               >
