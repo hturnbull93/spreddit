@@ -4986,3 +4986,29 @@ export const useGetPostFromUrl = () => {
 ```
 
 The `Post` page uses this new hook also.
+
+The `useUpdatePostMutation` hits the `updatePost` resolver:
+
+```ts
+  @Mutation(() => Post, { nullable: true })
+  @UseMiddleware(isAuth)
+  async updatePost(
+    @Arg("input") input: PostInput,
+    @Arg("id", () => Int) id: number,
+    @Ctx() { req }: ApolloContext,
+  ): Promise<Post | null> {
+    const post = await Post.findOne(id);
+    if (!post) return null;
+
+    const result = await Post.createQueryBuilder()
+      .update()
+      .set(input)
+      .where({ id, creatorId: req.session.userId })
+      .returning("*")
+      .execute();
+
+    return result.raw[0];
+  }
+```
+
+This guards against unauthorised access and uses the query builder to find, update and return the new post in one transaction.

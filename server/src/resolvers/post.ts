@@ -147,18 +147,23 @@ export class PostResolver {
   }
 
   @Mutation(() => Post, { nullable: true })
+  @UseMiddleware(isAuth)
   async updatePost(
-    @Arg("input") { title }: PostInput,
-    @Arg("id") id: number,
+    @Arg("input") input: PostInput,
+    @Arg("id", () => Int) id: number,
+    @Ctx() { req }: ApolloContext,
   ): Promise<Post | null> {
     const post = await Post.findOne(id);
     if (!post) return null;
 
-    if (typeof title !== "undefined") {
-      post.title = title;
-      await post.save();
-    }
-    return post;
+    const result = await Post.createQueryBuilder()
+      .update()
+      .set(input)
+      .where({ id, creatorId: req.session.userId })
+      .returning("*")
+      .execute();
+
+    return result.raw[0];
   }
 
   @Mutation(() => Boolean)
