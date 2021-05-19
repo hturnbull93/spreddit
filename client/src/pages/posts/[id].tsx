@@ -1,28 +1,18 @@
 import React from "react";
 import { Box, Flex, Heading, Text } from "@chakra-ui/layout";
 import { withUrqlClient } from "next-urql";
-import { useRouter } from "next/router";
 import Layout from "../../components/Layout";
-import { usePostQuery } from "../../generated/graphql";
 import { createUrqlClient } from "../../utils/createUrqlClient";
 import Error from "next/error";
 import { formatDistanceToNow } from "date-fns";
 import VoteControl from "../../components/VoteControl";
+import { useGetPostFromUrl } from "../../utils/useGetPostFromUrl";
 import LargeLoadingSpinner from "../../components/LargeLoadingSpinner";
 
 interface PostProps {}
 
 const Post: React.FC<PostProps> = () => {
-  const router = useRouter();
-  const { id } = router.query;
-  const intId = typeof id === "string" ? parseInt(id) : NaN;
-
-  const [{ fetching, error, data }] = usePostQuery({
-    pause: isNaN(intId),
-    variables: {
-      id: intId,
-    },
-  });
+  const [{ fetching, error, data }] = useGetPostFromUrl();
 
   if (fetching) {
     return (
@@ -32,11 +22,11 @@ const Post: React.FC<PostProps> = () => {
     );
   }
 
-  const errorPage = (
+  const notFoundError = (
     <Error statusCode={404} title="This post could not be found" />
   );
-  if (error) return errorPage;
-  if (!data?.post) return errorPage;
+  if (error) return notFoundError;
+  if (!data?.post) return notFoundError;
 
   const { post } = data;
   const formattedDate = formatDistanceToNow(
