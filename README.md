@@ -3388,14 +3388,14 @@ export const useIsAuth = () => {
   const [{ data, fetching }] = useMeQuery();
   useEffect(() => {
     if (!fetching && !data?.me) {
-      router.replace(`/login?next=${router.pathname}`);
+      router.replace(`/login?next=${router.asPath}`);
     }
   }, [fetching, data, router]);
   return { isAuth: data?.me, fetching };
 };
 ```
 
-It returns `fetching` on an object, which `CreatePost` uses to render a loading spinner to prevent the form from being rendered until it is confirmed the user is logged in.
+`router.asPath` will take into account query parameters, i.e. `/posts/edit/123` where 123 is a query parameter. It returns `fetching` on an object, which `CreatePost` uses to render a loading spinner to prevent the form from being rendered until it is confirmed the user is logged in.
 
 ### Global Authentication Error Handling
 
